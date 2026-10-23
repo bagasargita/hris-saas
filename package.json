@@ -1,0 +1,49 @@
+{
+  "name": "saas-platform",
+  "private": true,
+  "packageManager": "yarn@4.18.1",
+  "engines": {
+    "node": ">=24.22.1"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "yarn build:packages && yarn workspaces foreach --all --parallel --interlaced --jobs unlimited --include '@saas/api' --include '@saas/web' run dev",
+    "build": "yarn workspaces foreach --all --topological-dev --include '@saas/*' run build",
+    "build:packages": "yarn workspace @saas/contracts run build",
+    "lint": "yarn build:packages && yarn workspaces foreach --all --include '@saas/*' run lint",
+    "typecheck": "yarn build:packages && yarn workspaces foreach --all --include '@saas/*' run typecheck",
+    "test": "yarn build:packages && yarn workspaces foreach --all --include '@saas/*' run test",
+    "test:integration": "yarn build:packages && yarn workspace @saas/api run test:integration",
+    "test:e2e": "yarn build:packages && yarn workspace @saas/web run test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "yarn workspace @saas/api run db:generate",
+    "db:migrate": "yarn workspace @saas/api run db:migrate",
+    "db:migrate:deploy": "yarn workspace @saas/api run db:migrate:deploy",
+    "db:seed": "yarn workspace @saas/api run db:seed",
+    "db:reset": "yarn workspace @saas/api run db:reset"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  },
+  "dependenciesMeta": {
+    "@prisma/engines": {
+      "built": true
+    },
+    "argon2": {
+      "built": true
+    },
+    "esbuild": {
+      "built": true
+    },
+    "prisma": {
+      "built": true
+    },
+    "unrs-resolver": {
+      "built": true
+    }
+  }
+}

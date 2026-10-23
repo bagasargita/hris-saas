@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 24.22.1
+  # CI-only throwaway values. Real secrets are injected by the deployment platform, never committed.
+  CSRF_SECRET: ci-only-csrf-secret-not-used-anywhere-else-0123456789
+  COOKIE_SECURE: 'false'
+  APP_URL: http://localhost:3000
+  CORS_ORIGINS: http://localhost:3000
+  SEED_PASSWORD: ChangeMe-dev-only-1
+
+jobs:
+  checks:
+    name: Lint, typecheck, unit tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: corepack enable
+      - uses: actions/cache@v4
+        with:
+          path: .yarn/cache
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --immutable
+      - run: yarn db:generate
+      - run: yarn format:check
+      - run: yarn lint
+      - run: yarn typecheck
+      - run: yarn test
+      - run: yarn build
+
+  integration:
+    name: API integration tests (PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: saas
+          POSTGRES_PASSWORD: saas_ci_password
+          POSTGRES_DB: saas_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U saas -d saas_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://saas:saas_ci_password@localhost:5432/saas_test?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: corepack enable
+      - uses: actions/cache@v4
+        with:
+          path: .yarn/cache
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --immutable
+      - run: yarn db:generate
+      - run: yarn test:integration
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    needs: [checks]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: saas
+          POSTGRES_PASSWORD: saas_ci_password
+          POSTGRES_DB: saas_dev
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U saas -d saas_dev"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://saas:saas_ci_password@localhost:5432/saas_dev?schema=public
+      API_INTERNAL_URL: http://localhost:4000
+      SWAGGER_ENABLED: 'false'
+      LOG_LEVEL: warn
+      THROTTLE_AUTH_LIMIT: '1000'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: corepack enable
+      - uses: actions/cache@v4
+        with:
+          path: .yarn/cache
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --immutable
+      - run: yarn db:generate
+      - run: yarn db:migrate:deploy
+      - run: yarn db:seed
+      - run: yarn build
+      - run: yarn workspace @saas/web exec playwright install --with-deps chromium
+      - run: yarn test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7

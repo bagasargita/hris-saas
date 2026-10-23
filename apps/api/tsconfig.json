@@ -1,0 +1,17 @@
+{
+  "extends": "@saas/config/typescript/base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "removeComments": true,
+    "declaration": false,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "incremental": true,
+    "types": ["node", "jest"]
+  },
+  "include": ["src", "test", "prisma", "prisma.config.ts"]
+}

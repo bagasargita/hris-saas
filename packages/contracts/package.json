@@ -1,0 +1,30 @@
+{
+  "name": "@saas/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser-safe shared constants and API response types. Must never import server-only code.",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "node -e \"process.exit(0)\""
+  },
+  "devDependencies": {
+    "@saas/config": "workspace:*",
+    "eslint": "^9.39.0",
+    "typescript": "~6.0.3"
+  }
+}

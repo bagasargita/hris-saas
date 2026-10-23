@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+.pnp.*
+
+# builds
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# generated
+apps/api/src/generated/
+
+# testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# env
+.env
+.env.*
+!.env.example
+!.env.test.example
+
+# logs / os
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

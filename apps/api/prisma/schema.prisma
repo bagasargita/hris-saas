@@ -1,0 +1,262 @@
+// Multi-tenant SaaS schema: shared database, shared schema, explicit tenantId on tenant-scoped rows.
+// See docs/database.md for the design rationale.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+  runtime      = "nodejs"
+  // Extensionless relative imports: valid for CommonJS output under `moduleResolution: nodenext`.
+  importFileExtension = ""
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PlatformRole {
+  USER
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum UserTokenPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model User {
+  id                String       @id @default(uuid(7)) @db.Uuid
+  /// Always stored lower-cased and trimmed.
+  email             String       @unique
+  name              String
+  passwordHash      String
+  emailVerifiedAt   DateTime?
+  platformRole      PlatformRole @default(USER)
+  status            UserStatus   @default(ACTIVE)
+  passwordChangedAt DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  memberships         Membership[]
+  sessions            Session[]
+  tokens              UserToken[]
+  sentInvitations     Invitation[] @relation("InvitationInvitedBy")
+  acceptedInvitations Invitation[] @relation("InvitationAcceptedBy")
+  auditLogs           AuditLog[]
+
+  @@map("users")
+}
+
+model Tenant {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  name      String
+  slug      String       @unique
+  status    TenantStatus @default(ACTIVE)
+  plan      Plan         @default(FREE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  memberships Membership[]
+  roles       Role[]
+  invitations Invitation[]
+  auditLogs   AuditLog[]
+  sessions    Session[]
+
+  @@map("tenants")
+}
+
+model Membership {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  tenantId  String           @db.Uuid
+  userId    String           @db.Uuid
+  status    MembershipStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles  MembershipRole[]
+
+  @@unique([tenantId, userId])
+  // Target of the composite foreign key from MembershipRole; guarantees role assignments stay in-tenant.
+  @@unique([id, tenantId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Role {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  tenantId    String   @db.Uuid
+  /// Stable machine key, unique per tenant (e.g. "owner", "admin", "billing-lead").
+  key         String
+  name        String
+  description String?
+  /// Default roles created with the tenant. They cannot be deleted; the owner role cannot be edited.
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  permissions RolePermission[]
+  memberships MembershipRole[]
+  invitations Invitation[]
+
+  @@unique([tenantId, key])
+  @@unique([id, tenantId])
+  @@map("roles")
+}
+
+/// Global permission catalog, seeded from @saas/contracts. Permissions are not tenant-specific.
+model Permission {
+  id          String @id @default(uuid(7)) @db.Uuid
+  key         String @unique
+  group       String
+  description String
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model MembershipRole {
+  membershipId String   @db.Uuid
+  roleId       String   @db.Uuid
+  /// Denormalized so both composite foreign keys can enforce same-tenant assignment at the database level.
+  tenantId     String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  membership Membership @relation(fields: [membershipId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  role       Role       @relation(fields: [roleId, tenantId], references: [id, tenantId], onDelete: Restrict)
+
+  @@id([membershipId, roleId])
+  @@index([roleId])
+  @@index([tenantId])
+  @@map("membership_roles")
+}
+
+model Invitation {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  tenantId     String           @db.Uuid
+  email        String
+  roleId       String           @db.Uuid
+  /// SHA-256 of the invitation token; the raw token is only ever sent by email.
+  tokenHash    String           @unique
+  status       InvitationStatus @default(PENDING)
+  invitedById  String?          @db.Uuid
+  acceptedById String?          @db.Uuid
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime         @default(now())
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  role       Role   @relation(fields: [roleId, tenantId], references: [id, tenantId], onDelete: Restrict)
+  invitedBy  User?  @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  acceptedBy User?  @relation("InvitationAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status])
+  @@index([tenantId, email])
+  @@map("invitations")
+}
+
+/// Server-side browser session. The cookie holds a random token; only its SHA-256 hash is stored.
+model Session {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  userId            String    @db.Uuid
+  tokenHash         String    @unique
+  /// Preferred tenant for UX only. Never used as proof of access: every tenant request re-checks membership.
+  activeTenantId    String?   @db.Uuid
+  ipAddress         String?
+  userAgent         String?
+  createdAt         DateTime  @default(now())
+  lastUsedAt        DateTime  @default(now())
+  /// Idle expiry, extended on use up to absoluteExpiresAt.
+  expiresAt         DateTime
+  absoluteExpiresAt DateTime
+  revokedAt         DateTime?
+
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeTenant Tenant? @relation(fields: [activeTenantId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Single-use tokens for email verification and password reset.
+model UserToken {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  userId    String           @db.Uuid
+  purpose   UserTokenPurpose
+  tokenHash String           @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@map("user_tokens")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  /// Null for platform-level and account-level events.
+  tenantId   String?  @db.Uuid
+  actorId    String?  @db.Uuid
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  requestId  String?
+  createdAt  DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  actor  User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([action])
+  @@map("audit_logs")
+}
