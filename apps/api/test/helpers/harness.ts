@@ -67,7 +67,7 @@ export async function createHarness(): Promise<Harness> {
       mail.clear();
       // Permissions are a global catalog synced at bootstrap; everything else is wiped between tests.
       await prisma.$executeRawUnsafe(
-        'TRUNCATE TABLE "audit_logs", "invitations", "membership_roles", "memberships", "role_permissions", "roles", "sessions", "user_tokens", "tenants", "users" CASCADE',
+        'TRUNCATE TABLE "attendance_approvals", "attendance_records", "work_schedules", "attendance_sites", "audit_logs", "invitations", "membership_roles", "memberships", "role_permissions", "roles", "sessions", "user_tokens", "tenants", "users" CASCADE',
       );
     },
 

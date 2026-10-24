@@ -14,43 +14,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 const FEATURES = [
   {
     icon: Building2Icon,
-    title: 'Multi-workspace by design',
-    text: 'Every team gets an isolated workspace. Users can belong to many and switch instantly.',
+    title: 'Dirancang untuk multi-workspace',
+    text: 'Setiap tim mendapat workspace terisolasi. Pengguna dapat tergabung di banyak workspace dan beralih dengan cepat.',
   },
   {
     icon: ShieldCheckIcon,
-    title: 'Fine-grained roles',
-    text: 'Owner, admin, manager, member and viewer out of the box, plus custom roles built from explicit permissions.',
+    title: 'Peran yang terperinci',
+    text: 'Owner, admin, manager, member, dan viewer siap pakai, plus peran kustom dari izin eksplisit.',
   },
   {
     icon: UsersIcon,
-    title: 'Invitations that just work',
-    text: 'Invite by email with a pre-assigned role. Links are single-use, expire automatically and can be revoked.',
+    title: 'Undangan yang mudah',
+    text: 'Undang lewat email dengan peran yang sudah ditetapkan. Tautan sekali pakai, kedaluwarsa otomatis, dan dapat dicabut.',
   },
   {
     icon: ScrollTextIcon,
-    title: 'Complete audit trail',
-    text: 'Sign-ins, role changes, invitations and settings changes are recorded with actor, time and origin.',
+    title: 'Jejak audit lengkap',
+    text: 'Masuk, perubahan peran, undangan, dan pengaturan dicatat dengan pelaku, waktu, dan asal.',
   },
   {
     icon: KeyRoundIcon,
-    title: 'Session control',
-    text: 'See every device signed in to your account and revoke any of them with one click.',
+    title: 'Kontrol sesi',
+    text: 'Lihat setiap perangkat yang masuk ke akun Anda dan cabut aksesnya dengan satu klik.',
   },
   {
     icon: ZapIcon,
-    title: 'Fast everywhere',
-    text: 'Server-rendered pages, cached queries and a responsive interface for desktop and mobile.',
+    title: 'Cepat di mana saja',
+    text: 'Halaman di-render di server, kueri di-cache, dan antarmuka responsif untuk desktop dan mobile.',
   },
 ];
 
 const SECURITY = [
-  'Passwords hashed with Argon2id',
-  'HttpOnly, SameSite session cookies with server-side revocation',
-  'CSRF protection on every state-changing request',
-  'Tenant access verified on the server for every request',
-  'Privilege escalation prevention for role and invitation changes',
-  'Rate-limited authentication endpoints',
+  'Kata sandi di-hash dengan Argon2id',
+  'Cookie sesi HttpOnly, SameSite dengan pencabutan di sisi server',
+  'Perlindungan CSRF pada setiap permintaan yang mengubah state',
+  'Akses tenant diverifikasi di server untuk setiap permintaan',
+  'Pencegahan eskalasi hak istimewa untuk perubahan peran dan undangan',
+  'Endpoint autentikasi dengan batas laju permintaan',
 ];
 
 export default function LandingPage() {
@@ -60,24 +60,24 @@ export default function LandingPage() {
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklch,var(--primary)_18%,transparent),transparent)]" />
         <div className="mx-auto max-w-6xl px-4 py-24 text-center md:px-6 md:py-32">
           <span className="inline-flex items-center gap-2 rounded-full border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
-            <ShieldCheckIcon className="size-3.5 text-primary" /> Built for secure, multi-tenant
-            teams
+            <ShieldCheckIcon className="size-3.5 text-primary" /> Dibangun untuk tim multi-tenant
+            yang aman
           </span>
           <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-semibold tracking-tight text-balance md:text-6xl">
-            The workspace platform your security team will approve
+            Platform workspace yang tim keamanan Anda setujui
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-pretty text-muted-foreground">
-            Workspaces, members, roles, invitations and audit logs — with tenant isolation and
-            access control enforced on the server, not just hidden in the UI.
+            Workspace, anggota, peran, undangan, dan log audit — dengan isolasi tenant dan kontrol
+            akses yang ditegakkan di server, bukan hanya disembunyikan di UI.
           </p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             <Button size="lg" asChild>
               <Link href="/register">
-                Start for free <ArrowRightIcon />
+                Mulai gratis <ArrowRightIcon />
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/pricing">View pricing</Link>
+              <Link href="/pricing">Lihat harga</Link>
             </Button>
           </div>
         </div>
@@ -86,10 +86,10 @@ export default function LandingPage() {
       <section id="features" className="mx-auto max-w-6xl px-4 py-20 md:px-6">
         <div className="mb-12 max-w-2xl">
           <h2 className="text-3xl font-semibold tracking-tight">
-            Everything a B2B product needs on day one
+            Semua yang produk B2B butuhkan sejak hari pertama
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Focus on your product. Accounts, workspaces and permissions are already solved.
+            Fokus pada produk Anda. Akun, workspace, dan izin sudah tersedia.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -113,11 +113,11 @@ export default function LandingPage() {
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 md:grid-cols-2 md:px-6">
           <div>
             <h2 className="text-3xl font-semibold tracking-tight">
-              Security is the default, not an add-on
+              Keamanan bawaan, bukan fitur tambahan
             </h2>
             <p className="mt-3 text-muted-foreground">
-              The browser never decides who can see what. Every request is authenticated and
-              authorized by the API against your actual membership and role.
+              Peramban tidak menentukan siapa boleh melihat apa. Setiap permintaan diautentikasi dan
+              diotorisasi oleh API berdasarkan keanggotaan dan peran Anda yang sebenarnya.
             </p>
           </div>
           <ul className="grid gap-3">
@@ -135,12 +135,12 @@ export default function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20 text-center md:px-6">
-        <h2 className="text-3xl font-semibold tracking-tight">Ready to bring your team?</h2>
+        <h2 className="text-3xl font-semibold tracking-tight">Siap mengajak tim Anda?</h2>
         <p className="mt-3 text-muted-foreground">
-          Create a workspace in under a minute. No credit card required.
+          Buat workspace dalam kurang dari satu menit. Tanpa kartu kredit.
         </p>
         <Button size="lg" className="mt-8" asChild>
-          <Link href="/register">Create your workspace</Link>
+          <Link href="/register">Buat workspace Anda</Link>
         </Button>
       </section>
     </>

@@ -9,10 +9,10 @@ test.describe('authentication', () => {
     await expect(page).toHaveURL(/\/login\?next=%2Ft%2Facme%2Fmembers/);
 
     await page.getByLabel('Email').fill(USERS.owner);
-    await page.getByLabel(/^Password/).fill(SEED_PASSWORD);
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByLabel(/^Kata sandi/).fill(SEED_PASSWORD);
+    await page.getByRole('button', { name: 'Masuk' }).click();
     await expect(page).toHaveURL('/t/acme/members');
-    await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Anggota' })).toBeVisible();
   });
 
   test('sets an HttpOnly session cookie that scripts cannot read', async ({ page, context }) => {
@@ -28,21 +28,21 @@ test.describe('authentication', () => {
   test('shows one generic error for wrong passwords and unknown accounts', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(USERS.owner);
-    await page.getByLabel(/^Password/).fill('definitely-wrong-1');
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByLabel(/^Kata sandi/).fill('definitely-wrong-1');
+    await page.getByRole('button', { name: 'Masuk' }).click();
     const first = await page.getByRole('alert').textContent();
 
     await page.getByLabel('Email').fill('nobody@nowhere.test');
-    await page.getByLabel(/^Password/).fill('definitely-wrong-1');
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByLabel(/^Kata sandi/).fill('definitely-wrong-1');
+    await page.getByRole('button', { name: 'Masuk' }).click();
     await expect(page.getByRole('alert')).toHaveText(first ?? '');
   });
 
   test('blocks suspended accounts', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(USERS.suspended);
-    await page.getByLabel(/^Password/).fill(SEED_PASSWORD);
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByLabel(/^Kata sandi/).fill(SEED_PASSWORD);
+    await page.getByRole('button', { name: 'Masuk' }).click();
     await expect(page.getByRole('alert')).toContainText(/suspended/i);
   });
 
@@ -53,8 +53,8 @@ test.describe('authentication', () => {
 
   test('logout ends the session on the server', async ({ page }) => {
     await login(page, USERS.owner);
-    await page.getByRole('button', { name: 'Account menu' }).click();
-    await page.getByRole('menuitem', { name: 'Sign out' }).click();
+    await page.getByRole('button', { name: 'Menu akun' }).click();
+    await page.getByRole('menuitem', { name: 'Keluar' }).click();
     await expect(page).toHaveURL(/\/login/);
     await page.goto('/tenants');
     await expect(page).toHaveURL(/\/login/);

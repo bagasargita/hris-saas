@@ -32,7 +32,7 @@ export function ProfileForm({ user }: { user: UserDto }) {
     try {
       await apiPatch<UserDto>('/users/me', { name: trimmed });
       await queryClient.invalidateQueries({ queryKey: queryKeys.me });
-      toast.success('Profile updated');
+      toast.success('Profil diperbarui');
       router.refresh();
     } catch (error) {
       toast.error(errorMessage(error));
@@ -44,14 +44,14 @@ export function ProfileForm({ user }: { user: UserDto }) {
   return (
     <Card className="max-w-2xl">
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>This is how teammates see you across workspaces.</CardDescription>
+        <CardTitle>Profil</CardTitle>
+        <CardDescription>Begini rekan tim melihat Anda di seluruh workspace.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <FormField
           id="profile-name"
-          label="Name"
-          error={trimmed.length === 0 ? 'Name is required' : undefined}
+          label="Nama"
+          error={trimmed.length === 0 ? 'Nama wajib diisi' : undefined}
         >
           <Input
             id="profile-name"
@@ -64,7 +64,7 @@ export function ProfileForm({ user }: { user: UserDto }) {
         <FormField
           id="profile-email"
           label="Email"
-          hint={user.emailVerified ? 'Verified' : 'Not verified'}
+          hint={user.emailVerified ? 'Terverifikasi' : 'Belum terverifikasi'}
         >
           <Input id="profile-email" value={user.email} disabled readOnly />
         </FormField>
@@ -74,7 +74,7 @@ export function ProfileForm({ user }: { user: UserDto }) {
           onClick={() => void save()}
           disabled={saving || trimmed.length === 0 || trimmed === user.name}
         >
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? 'Menyimpan…' : 'Simpan'}
         </Button>
       </CardFooter>
     </Card>

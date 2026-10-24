@@ -5,8 +5,8 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-const dateFormatter = new Intl.DateTimeFormat('en', { dateStyle: 'medium' });
-const dateTimeFormatter = new Intl.DateTimeFormat('en', {
+const dateFormatter = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' });
+const dateTimeFormatter = new Intl.DateTimeFormat('id-ID', {
   dateStyle: 'medium',
   timeStyle: 'short',
 });

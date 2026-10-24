@@ -51,7 +51,7 @@ export function LoginForm() {
     if (!unverifiedEmail) return;
     try {
       await apiPost('/auth/resend-verification', { email: unverifiedEmail });
-      setFormError('If the account needs verification, a new link is on its way.');
+      setFormError('Jika akun perlu diverifikasi, tautan baru akan segera dikirim.');
       setUnverifiedEmail(null);
     } catch (error) {
       setFormError(errorMessage(error));
@@ -61,7 +61,7 @@ export function LoginForm() {
   return (
     <form onSubmit={(event) => void onSubmit(event)} noValidate className="grid gap-4">
       {reason === 'expired' && !formError && (
-        <FormAlert tone="info">Your session ended. Please sign in again.</FormAlert>
+        <FormAlert tone="info">Sesi Anda telah berakhir. Silakan masuk kembali.</FormAlert>
       )}
       {formError && (
         <FormAlert>
@@ -72,7 +72,7 @@ export function LoginForm() {
               onClick={() => void resend()}
               className="ml-1 font-medium underline underline-offset-2"
             >
-              Resend verification email
+              Kirim ulang email verifikasi
             </button>
           )}
         </FormAlert>
@@ -91,12 +91,12 @@ export function LoginForm() {
         id="password"
         label={
           <span className="flex w-full items-center justify-between">
-            Password
+            Kata sandi
             <Link
               href="/forgot-password"
               className="text-xs font-normal text-muted-foreground hover:text-foreground"
             >
-              Forgot password?
+              Lupa kata sandi?
             </Link>
           </span>
         }
@@ -111,7 +111,7 @@ export function LoginForm() {
         />
       </FormField>
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Signing in…' : 'Sign in'}
+        {isSubmitting ? 'Memproses masuk…' : 'Masuk'}
       </Button>
     </form>
   );

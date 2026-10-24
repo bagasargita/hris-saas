@@ -36,8 +36,8 @@ export function ForgotPasswordForm() {
   if (sent) {
     return (
       <FormAlert tone="success">
-        If an account exists for that address, you will receive a reset link shortly. The link
-        expires in 1 hour.
+        Jika akun terdaftar untuk alamat tersebut, Anda akan menerima tautan reset sebentar lagi.
+        Tautan berlaku selama 1 jam.
       </FormAlert>
     );
   }
@@ -56,7 +56,7 @@ export function ForgotPasswordForm() {
         />
       </FormField>
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Sending…' : 'Send reset link'}
+        {isSubmitting ? 'Mengirim…' : 'Kirim tautan reset'}
       </Button>
     </form>
   );
@@ -85,9 +85,9 @@ export function ResetPasswordForm() {
   if (!token) {
     return (
       <FormAlert>
-        This reset link is incomplete.{' '}
+        Tautan reset ini tidak lengkap.{' '}
         <Link href="/forgot-password" className="font-medium underline">
-          Request a new one
+          Minta tautan baru
         </Link>
         .
       </FormAlert>
@@ -98,10 +98,10 @@ export function ResetPasswordForm() {
     return (
       <div className="grid gap-4">
         <FormAlert tone="success">
-          Your password was changed and all other sessions were signed out.
+          Kata sandi Anda telah diubah dan semua sesi lain telah keluar.
         </FormAlert>
         <Button asChild className="w-full">
-          <Link href="/login">Continue to sign in</Link>
+          <Link href="/login">Lanjutkan masuk</Link>
         </Button>
       </div>
     );
@@ -112,9 +112,9 @@ export function ResetPasswordForm() {
       {formError && <FormAlert>{formError}</FormAlert>}
       <FormField
         id="password"
-        label="New password"
+        label="Kata sandi baru"
         error={errors.password?.message}
-        hint={`At least ${PASSWORD_MIN} characters.`}
+        hint={`Minimal ${PASSWORD_MIN} karakter.`}
       >
         <Input
           id="password"
@@ -125,7 +125,7 @@ export function ResetPasswordForm() {
           {...form.register('password')}
         />
       </FormField>
-      <FormField id="confirm" label="Confirm new password" error={errors.confirm?.message}>
+      <FormField id="confirm" label="Konfirmasi kata sandi baru" error={errors.confirm?.message}>
         <Input
           id="confirm"
           type="password"
@@ -135,7 +135,7 @@ export function ResetPasswordForm() {
         />
       </FormField>
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Saving…' : 'Set new password'}
+        {isSubmitting ? 'Menyimpan…' : 'Atur kata sandi baru'}
       </Button>
     </form>
   );

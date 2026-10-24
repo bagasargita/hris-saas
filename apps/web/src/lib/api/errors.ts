@@ -43,20 +43,20 @@ export function toApiError(status: number, body: unknown): ApiError {
   return new ApiError(
     status,
     status >= 500 ? 'INTERNAL_ERROR' : 'BAD_REQUEST',
-    'Unexpected response from server',
+    'Respons tidak terduga dari server',
   );
 }
 
 /** Human-friendly message for toasts; never exposes stack traces or raw server output. */
 export function errorMessage(
   error: unknown,
-  fallback = 'Something went wrong. Please try again.',
+  fallback = 'Terjadi kesalahan. Silakan coba lagi.',
 ): string {
   if (error instanceof ApiError) {
     if (error.code === 'NETWORK_ERROR')
-      return 'Cannot reach the server. Check your connection and try again.';
+      return 'Tidak dapat terhubung ke server. Periksa koneksi Anda dan coba lagi.';
     if (error.code === 'RATE_LIMITED')
-      return 'Too many attempts. Please wait a moment and try again.';
+      return 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.';
     if (error.status >= 500) return fallback;
     return error.message;
   }

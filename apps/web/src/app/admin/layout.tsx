@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   if (me.user.platformRole !== 'SUPER_ADMIN') {
     return (
       <div className="mx-auto max-w-lg px-4 py-24">
-        <AccessDenied description="The platform console is only available to platform administrators." />
+        <AccessDenied description="Konsol platform hanya tersedia untuk administrator platform." />
       </div>
     );
   }

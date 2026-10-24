@@ -7,22 +7,22 @@ export const PASSWORD_MAX = 128;
 export const emailSchema = z
   .string()
   .trim()
-  .min(1, 'Email is required')
+  .min(1, 'Email wajib diisi')
   .max(254)
-  .pipe(z.email('Enter a valid email address'));
+  .pipe(z.email('Masukkan alamat email yang valid'));
 
 export const newPasswordSchema = z
   .string()
-  .min(PASSWORD_MIN, `Use at least ${PASSWORD_MIN} characters`)
-  .max(PASSWORD_MAX, `Use at most ${PASSWORD_MAX} characters`);
+  .min(PASSWORD_MIN, `Gunakan minimal ${PASSWORD_MIN} karakter`)
+  .max(PASSWORD_MAX, `Gunakan maksimal ${PASSWORD_MAX} karakter`);
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, 'Password is required').max(PASSWORD_MAX),
+  password: z.string().min(1, 'Kata sandi wajib diisi').max(PASSWORD_MAX),
 });
 
 export const registerSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100),
+  name: z.string().trim().min(1, 'Nama wajib diisi').max(100),
   email: emailSchema,
   password: newPasswordSchema,
 });
@@ -32,18 +32,18 @@ export const forgotPasswordSchema = z.object({ email: emailSchema });
 export const resetPasswordSchema = z
   .object({ password: newPasswordSchema, confirm: z.string() })
   .refine((v) => v.password === v.confirm, {
-    message: 'Passwords do not match',
+    message: 'Kata sandi tidak cocok',
     path: ['confirm'],
   });
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
+    currentPassword: z.string().min(1, 'Kata sandi saat ini wajib diisi'),
     newPassword: newPasswordSchema,
     confirm: z.string(),
   })
   .refine((v) => v.newPassword === v.confirm, {
-    message: 'Passwords do not match',
+    message: 'Kata sandi tidak cocok',
     path: ['confirm'],
   });
 
@@ -52,15 +52,18 @@ export const slugSchema = z
   .trim()
   .regex(
     /^[a-z0-9](?:[a-z0-9-]{0,46}[a-z0-9])?$/,
-    'Use lowercase letters, numbers and dashes (not at the start or end)',
+    'Gunakan huruf kecil, angka, dan tanda hubung (tidak di awal atau akhir)',
   );
 
 export const workspaceSchema = z.object({
-  name: z.string().trim().min(2, 'Use at least 2 characters').max(80),
+  name: z.string().trim().min(2, 'Gunakan minimal 2 karakter').max(80),
   slug: z.union([slugSchema, z.literal('')]).optional(),
 });
 
-export const inviteSchema = z.object({ email: emailSchema, roleId: z.uuid('Choose a role') });
+export const inviteSchema = z.object({
+  email: emailSchema,
+  roleId: z.uuid('Pilih peran'),
+});
 
 export type LoginValues = z.infer<typeof loginSchema>;
 export type RegisterValues = z.infer<typeof registerSchema>;

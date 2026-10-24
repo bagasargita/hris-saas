@@ -35,12 +35,12 @@ export function RolesPage() {
   return (
     <>
       <PageHeader
-        title="Roles"
-        description="Roles bundle permissions. Members can hold several roles; their permissions add up."
+        title="Peran"
+        description="Peran menggabungkan izin. Anggota dapat memiliki beberapa peran; izin mereka digabungkan."
         actions={
           can('roles.create') && (
             <Button onClick={() => setEditing('new')}>
-              <PlusIcon /> New role
+              <PlusIcon /> Peran baru
             </Button>
           )
         }
@@ -58,14 +58,14 @@ export function RolesPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         {role.name}
-                        {role.isSystem && <Badge variant="secondary">System</Badge>}
+                        {role.isSystem && <Badge variant="secondary">Sistem</Badge>}
                       </CardTitle>
-                      <CardDescription>{role.description ?? 'Custom role'}</CardDescription>
+                      <CardDescription>{role.description ?? 'Peran kustom'}</CardDescription>
                       <CardAction className="flex gap-1">
                         {isOwner ? (
                           <LockIcon
                             className="size-4 text-muted-foreground"
-                            aria-label="The owner role cannot be modified"
+                            aria-label="Peran pemilik tidak dapat diubah"
                           />
                         ) : (
                           <>
@@ -74,7 +74,7 @@ export function RolesPage() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setEditing(role)}
-                                aria-label={`Edit ${role.name}`}
+                                aria-label={`Ubah ${role.name}`}
                               >
                                 <PencilIcon />
                               </Button>
@@ -84,7 +84,7 @@ export function RolesPage() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setDeleting(role)}
-                                aria-label={`Delete ${role.name}`}
+                                aria-label={`Hapus ${role.name}`}
                               >
                                 <Trash2Icon />
                               </Button>
@@ -96,11 +96,11 @@ export function RolesPage() {
                     <CardContent className="grid gap-3">
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <UsersIcon className="size-4" /> {role.memberCount}{' '}
-                        {role.memberCount === 1 ? 'member' : 'members'}
+                        {role.memberCount === 1 ? 'anggota' : 'anggota'}
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {role.permissions.length === 0 && (
-                          <span className="text-xs text-muted-foreground">No permissions</span>
+                          <span className="text-xs text-muted-foreground">Tidak ada izin</span>
                         )}
                         {role.permissions.map((p) => (
                           <code key={p} className="rounded bg-muted px-1.5 py-0.5 text-[11px]">
@@ -120,20 +120,20 @@ export function RolesPage() {
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title="Delete role?"
+        title="Hapus peran?"
         description={
           deleting
-            ? `The "${deleting.name}" role will be deleted. Roles that are assigned to members or pending invitations cannot be deleted.`
+            ? `Peran "${deleting.name}" akan dihapus. Peran yang ditetapkan ke anggota atau undangan yang masih menunggu tidak dapat dihapus.`
             : ''
         }
-        confirmLabel="Delete role"
+        confirmLabel="Hapus peran"
         destructive
         pending={deleteRole.isPending}
         onConfirm={() => {
           if (!deleting) return;
           deleteRole.mutate(deleting.id, {
             onSuccess: () => {
-              toast.success('Role deleted');
+              toast.success('Peran dihapus');
               setDeleting(null);
             },
             onError: (error) => toast.error(errorMessage(error)),

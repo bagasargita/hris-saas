@@ -6,7 +6,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
-  description: 'Secure multi-tenant workspace platform for modern teams.',
+  description: 'Platform workspace multi-tenant yang aman untuk tim modern.',
   robots: { index: true, follow: true },
 };
 
@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning>
       <body className="min-h-svh font-sans">
         <Providers>{children}</Providers>
       </body>

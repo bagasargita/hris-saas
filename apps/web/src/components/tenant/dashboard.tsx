@@ -66,13 +66,13 @@ export function Dashboard() {
   return (
     <>
       <PageHeader
-        title={`Welcome to ${tenant.name}`}
-        description="An overview of your workspace activity and membership."
+        title={`Selamat datang di ${tenant.name}`}
+        description="Ringkasan aktivitas dan keanggotaan workspace Anda."
         actions={
           can('members.invite') && (
             <Button asChild>
               <Link href={`${basePath}/invitations?new=1`}>
-                <MailIcon /> Invite people
+                <MailIcon /> Undang orang
               </Link>
             </Button>
           )
@@ -84,20 +84,20 @@ export function Dashboard() {
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              label="Active members"
+              label="Anggota aktif"
               value={data?.activeMembers}
               icon={UserCheckIcon}
               href={can('members.read') ? `${basePath}/members` : undefined}
             />
-            <StatCard label="Suspended" value={data?.suspendedMembers} icon={UserXIcon} />
+            <StatCard label="Ditangguhkan" value={data?.suspendedMembers} icon={UserXIcon} />
             <StatCard
-              label="Pending invitations"
+              label="Undangan menunggu"
               value={data?.pendingInvitations}
               icon={MailIcon}
               href={can('members.read') ? `${basePath}/invitations` : undefined}
             />
             <StatCard
-              label="Roles"
+              label="Peran"
               value={data?.roles}
               icon={ShieldCheckIcon}
               href={can('roles.read') ? `${basePath}/roles` : undefined}
@@ -106,8 +106,8 @@ export function Dashboard() {
           <div className="grid gap-4 lg:grid-cols-5">
             <Card className="lg:col-span-3">
               <CardHeader>
-                <CardTitle>Activity</CardTitle>
-                <CardDescription>Audit events over the last 14 days</CardDescription>
+                <CardTitle>Aktivitas</CardTitle>
+                <CardDescription>Peristiwa audit dalam 14 hari terakhir</CardDescription>
               </CardHeader>
               <CardContent className="h-64">
                 {data ? (
@@ -143,7 +143,7 @@ export function Dashboard() {
                       <Area
                         type="monotone"
                         dataKey="count"
-                        name="Events"
+                        name="Peristiwa"
                         stroke="var(--chart-1)"
                         strokeWidth={2}
                         fill="url(#activityFill)"
@@ -157,8 +157,8 @@ export function Dashboard() {
             </Card>
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Members by role</CardTitle>
-                <CardDescription>Active members per assigned role</CardDescription>
+                <CardTitle>Anggota menurut peran</CardTitle>
+                <CardDescription>Anggota aktif per peran yang ditetapkan</CardDescription>
               </CardHeader>
               <CardContent className="h-64">
                 {data ? (
@@ -193,7 +193,7 @@ export function Dashboard() {
                       <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'var(--muted)' }} />
                       <Bar
                         dataKey="count"
-                        name="Members"
+                        name="Anggota"
                         fill="var(--chart-2)"
                         radius={[0, 4, 4, 0]}
                       />

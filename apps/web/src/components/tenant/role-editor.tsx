@@ -46,7 +46,7 @@ export function RoleEditor({ role, onClose }: { role: RoleDto | null; onClose: (
     setError(null);
     const trimmed = name.trim();
     if (trimmed.length < 2) {
-      setError('Role name must be at least 2 characters.');
+      setError('Nama peran minimal 2 karakter.');
       return;
     }
     const input = {
@@ -57,7 +57,7 @@ export function RoleEditor({ role, onClose }: { role: RoleDto | null; onClose: (
     try {
       if (role) await update.mutateAsync({ roleId: role.id, ...input });
       else await create.mutateAsync(input);
-      toast.success(role ? 'Role updated' : 'Role created');
+      toast.success(role ? 'Peran diperbarui' : 'Peran dibuat');
       onClose();
     } catch (err) {
       setError(errorMessage(err));
@@ -68,15 +68,15 @@ export function RoleEditor({ role, onClose }: { role: RoleDto | null; onClose: (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{role ? `Edit ${role.name}` : 'Create role'}</DialogTitle>
+          <DialogTitle>{role ? `Ubah ${role.name}` : 'Buat peran'}</DialogTitle>
           <DialogDescription>
-            Permissions you do not hold yourself cannot be granted and are disabled.
+            Izin yang tidak Anda miliki tidak dapat diberikan dan dinonaktifkan.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           {error && <FormAlert>{error}</FormAlert>}
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="role-name" label="Name">
+            <FormField id="role-name" label="Nama">
               <Input
                 id="role-name"
                 value={name}
@@ -84,7 +84,7 @@ export function RoleEditor({ role, onClose }: { role: RoleDto | null; onClose: (
                 maxLength={50}
               />
             </FormField>
-            <FormField id="role-desc" label="Description (optional)">
+            <FormField id="role-desc" label="Deskripsi (opsional)">
               <Textarea
                 id="role-desc"
                 value={description}
@@ -131,10 +131,10 @@ export function RoleEditor({ role, onClose }: { role: RoleDto | null; onClose: (
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={pending}>
-            Cancel
+            Batal
           </Button>
           <Button onClick={() => void save()} disabled={pending}>
-            {pending ? 'Saving…' : role ? 'Save changes' : 'Create role'}
+            {pending ? 'Menyimpan…' : role ? 'Simpan perubahan' : 'Buat peran'}
           </Button>
         </DialogFooter>
       </DialogContent>

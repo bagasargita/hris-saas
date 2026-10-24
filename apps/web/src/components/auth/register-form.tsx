@@ -44,11 +44,11 @@ export function RegisterForm() {
         <div className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
           <MailCheckIcon className="size-5" />
         </div>
-        <h2 className="font-medium">Check your inbox</h2>
+        <h2 className="font-medium">Periksa kotak masuk Anda</h2>
         <p className="text-sm text-muted-foreground">
-          We sent a verification link to{' '}
-          <strong className="text-foreground">{submittedEmail}</strong>. Follow it to activate your
-          account.
+          Kami mengirim tautan verifikasi ke{' '}
+          <strong className="text-foreground">{submittedEmail}</strong>. Buka tautan tersebut untuk
+          mengaktifkan akun Anda.
         </p>
       </div>
     );
@@ -57,7 +57,7 @@ export function RegisterForm() {
   return (
     <form onSubmit={(event) => void onSubmit(event)} noValidate className="grid gap-4">
       {formError && <FormAlert>{formError}</FormAlert>}
-      <FormField id="name" label="Full name" error={errors.name?.message}>
+      <FormField id="name" label="Nama lengkap" error={errors.name?.message}>
         <Input
           id="name"
           autoComplete="name"
@@ -66,7 +66,7 @@ export function RegisterForm() {
           {...form.register('name')}
         />
       </FormField>
-      <FormField id="email" label="Work email" error={errors.email?.message}>
+      <FormField id="email" label="Email kantor" error={errors.email?.message}>
         <Input
           id="email"
           type="email"
@@ -77,9 +77,9 @@ export function RegisterForm() {
       </FormField>
       <FormField
         id="password"
-        label="Password"
+        label="Kata sandi"
         error={errors.password?.message}
-        hint={`At least ${PASSWORD_MIN} characters. A passphrase works well.`}
+        hint={`Minimal ${PASSWORD_MIN} karakter. Frasa sandi juga direkomendasikan.`}
       >
         <Input
           id="password"
@@ -90,7 +90,7 @@ export function RegisterForm() {
         />
       </FormField>
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Creating account…' : 'Create account'}
+        {isSubmitting ? 'Membuat akun…' : 'Buat akun'}
       </Button>
     </form>
   );

@@ -16,6 +16,7 @@ import { type ListMembersQueryDto, type MemberStatusValue } from './memberships.
 
 const memberInclude = {
   user: { select: { id: true, email: true, name: true } },
+  manager: { select: { id: true, user: { select: { id: true, email: true, name: true } } } },
   roles: {
     select: { role: { select: { id: true, key: true, name: true } } },
     orderBy: { createdAt: 'asc' },
@@ -31,6 +32,8 @@ function toMemberDto(row: MemberRow): MemberDto {
     joinedAt: row.createdAt.toISOString(),
     user: row.user,
     roles: row.roles.map(({ role }) => role),
+    managerId: row.managerId,
+    manager: row.manager,
   };
 }
 
@@ -44,10 +47,24 @@ export class MembershipsService {
     private readonly audit: AuditLogService,
   ) {}
 
-  async list(tenantId: string, query: ListMembersQueryDto): Promise<Paginated<MemberDto>> {
+  /**
+   * Org-wide directory for owners/admins (`members.update`).
+   * Managers with only `members.read` see themselves + direct reports.
+   */
+  private teamScopeWhere(context: TenantContext): Prisma.MembershipWhereInput | undefined {
+    if (context.isOwner || context.permissions.has('members.update')) return undefined;
+    return {
+      OR: [{ id: context.membershipId }, { managerId: context.membershipId }],
+    };
+  }
+
+  async list(context: TenantContext, query: ListMembersQueryDto): Promise<Paginated<MemberDto>> {
+    const tenantId = context.tenant.id;
     const search = query.search?.trim();
+    const teamScope = this.teamScopeWhere(context);
     const where: Prisma.MembershipWhereInput = {
       tenantId,
+      ...(teamScope ?? {}),
       ...(query.status ? { status: query.status } : {}),
       ...(query.roleId ? { roles: { some: { roleId: query.roleId } } } : {}),
       ...(search
@@ -78,9 +95,11 @@ export class MembershipsService {
     return paginated(rows.map(toMemberDto), total, query);
   }
 
-  async get(tenantId: string, membershipId: string): Promise<MemberDto> {
+  async get(context: TenantContext, membershipId: string): Promise<MemberDto> {
+    const tenantId = context.tenant.id;
+    const teamScope = this.teamScopeWhere(context);
     const row = await this.prisma.membership.findFirst({
-      where: { id: membershipId, tenantId },
+      where: { id: membershipId, tenantId, ...(teamScope ?? {}) },
       include: memberInclude,
     });
     if (!row) throw AppException.notFound('Member not found');
@@ -144,7 +163,7 @@ export class MembershipsService {
       );
     }, SERIALIZABLE);
 
-    return this.get(tenantId, membershipId);
+    return this.get(context, membershipId);
   }
 
   async updateStatus(
@@ -180,7 +199,65 @@ export class MembershipsService {
         tx,
       );
     }, SERIALIZABLE);
-    return this.get(tenantId, membershipId);
+    return this.get(context, membershipId);
+  }
+
+  async updateManager(
+    context: TenantContext,
+    actorId: string,
+    membershipId: string,
+    managerId: string | null,
+    meta: RequestMeta,
+  ): Promise<MemberDto> {
+    const tenantId = context.tenant.id;
+    await this.prisma.$transaction(async (tx) => {
+      const target = await this.authorization.loadMemberScope(tenantId, membershipId, tx);
+      assertCanManageMember(actorScope(context), target);
+
+      if (managerId === membershipId) {
+        throw AppException.badRequest('A member cannot report to themselves');
+      }
+
+      if (managerId) {
+        const manager = await tx.membership.findFirst({
+          where: { id: managerId, tenantId, status: 'ACTIVE' },
+        });
+        if (!manager) throw AppException.badRequest('Manager must be an active member of this workspace');
+
+        // Prevent cycles: walk up from the proposed manager.
+        let cursor: string | null = managerId;
+        const seen = new Set<string>([membershipId]);
+        while (cursor) {
+          if (seen.has(cursor)) {
+            throw AppException.badRequest('That reporting line would create a cycle');
+          }
+          seen.add(cursor);
+          const row: { managerId: string | null } | null = await tx.membership.findFirst({
+            where: { id: cursor, tenantId },
+            select: { managerId: true },
+          });
+          cursor = row?.managerId ?? null;
+        }
+      }
+
+      await tx.membership.update({
+        where: { id: membershipId },
+        data: { managerId },
+      });
+      await this.audit.record(
+        {
+          action: AUDIT_ACTIONS.MEMBER_MANAGER_CHANGED,
+          actorId,
+          tenantId,
+          targetType: 'membership',
+          targetId: membershipId,
+          metadata: { managerId },
+          meta,
+        },
+        tx,
+      );
+    });
+    return this.get(context, membershipId);
   }
 
   async remove(

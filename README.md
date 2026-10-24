@@ -63,6 +63,7 @@ docs/             architecture, database, authentication, authorization, multi-t
 - [Authentication](docs/authentication.md)
 - [Authorization](docs/authorization.md)
 - [Multi-tenancy](docs/multi-tenancy.md)
+- [Attendance](docs/attendance.md)
 - [API](docs/api.md)
 - [Deployment](docs/deployment.md)
 

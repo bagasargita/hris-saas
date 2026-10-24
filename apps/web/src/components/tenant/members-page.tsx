@@ -49,6 +49,7 @@ import {
   useMembers,
   useRemoveMember,
   useRoles,
+  useUpdateMemberManager,
   useUpdateMemberRoles,
   useUpdateMemberStatus,
   type MemberListParams,
@@ -71,6 +72,70 @@ function parseStatus(value: string): MemberListParams['status'] {
 
 function parseSort(value: string): Pick<MemberListParams, 'sortBy' | 'sortOrder'> {
   return Object.entries(SORTS).find(([key]) => key === value)?.[1] ?? SORTS['joinedAt:desc'];
+}
+
+function EditManagerDialog({
+  member,
+  candidates,
+  onClose,
+}: {
+  member: MemberDto;
+  candidates: MemberDto[];
+  onClose: () => void;
+}) {
+  const { tenant } = useTenant();
+  const updateManager = useUpdateMemberManager(tenant.id);
+  const [managerId, setManagerId] = useState<string>(member.managerId ?? 'none');
+
+  const save = () => {
+    updateManager.mutate(
+      { memberId: member.id, managerId: managerId === 'none' ? null : managerId },
+      {
+        onSuccess: () => {
+          toast.success(`Atasan diperbarui untuk ${member.user.name}`);
+          onClose();
+        },
+        onError: (error) => toast.error(errorMessage(error)),
+      },
+    );
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Melapor kepada</DialogTitle>
+          <DialogDescription>
+            Pilih atasan langsung untuk {member.user.name}. Atasan menyetujui kehadiran anggota
+            ini.
+          </DialogDescription>
+        </DialogHeader>
+        <Select value={managerId} onValueChange={setManagerId}>
+          <SelectTrigger aria-label="Atasan">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Tidak ada atasan</SelectItem>
+            {candidates
+              .filter((c) => c.id !== member.id && c.status === 'ACTIVE')
+              .map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.user.name} ({c.user.email})
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Batal
+          </Button>
+          <Button onClick={save} disabled={updateManager.isPending}>
+            {updateManager.isPending ? 'Menyimpan…' : 'Simpan'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function EditRolesDialog({
@@ -102,7 +167,7 @@ function EditRolesDialog({
       { memberId: member.id, roleIds: [...selected] },
       {
         onSuccess: () => {
-          toast.success(`Roles updated for ${member.user.name}`);
+          toast.success(`Peran diperbarui untuk ${member.user.name}`);
           onClose();
         },
         onError: (error) => toast.error(errorMessage(error)),
@@ -114,10 +179,10 @@ function EditRolesDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change roles</DialogTitle>
+          <DialogTitle>Ubah peran</DialogTitle>
           <DialogDescription>
-            Choose the roles for {member.user.name}. You can only assign roles whose permissions you
-            hold yourself.
+            Pilih peran untuk {member.user.name}. Anda hanya dapat menetapkan peran yang izinnya
+            Anda miliki.
           </DialogDescription>
         </DialogHeader>
         <div className="grid max-h-80 gap-2 overflow-y-auto">
@@ -134,7 +199,7 @@ function EditRolesDialog({
               <span className="grid gap-0.5">
                 <span className="text-sm font-medium">{role.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {role.description ?? `${role.permissions.length} permissions`}
+                  {role.description ?? `${role.permissions.length} izin`}
                 </span>
               </span>
             </label>
@@ -142,10 +207,10 @@ function EditRolesDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Batal
           </Button>
           <Button onClick={save} disabled={selected.size === 0 || updateRoles.isPending}>
-            {updateRoles.isPending ? 'Saving…' : 'Save roles'}
+            {updateRoles.isPending ? 'Menyimpan…' : 'Simpan peran'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -168,10 +233,13 @@ export function MembersPage() {
   const updateStatus = useUpdateMemberStatus(tenant.id);
   const removeMember = useRemoveMember(tenant.id);
   const [editing, setEditing] = useState<MemberDto | null>(null);
+  const [editingManager, setEditingManager] = useState<MemberDto | null>(null);
   const [removing, setRemoving] = useState<MemberDto | null>(null);
 
   const canManage = can('members.update');
   const canRemove = can('members.remove');
+  /** Managers without members.update only see their team (enforced by the API too). */
+  const teamOnly = !canManage;
 
   const setStatus = (member: MemberDto, status: 'ACTIVE' | 'SUSPENDED') => {
     updateStatus.mutate(
@@ -180,8 +248,8 @@ export function MembersPage() {
         onSuccess: () =>
           toast.success(
             status === 'SUSPENDED'
-              ? `${member.user.name} was suspended`
-              : `${member.user.name} was reactivated`,
+              ? `${member.user.name} ditangguhkan`
+              : `${member.user.name} diaktifkan kembali`,
           ),
         onError: (error) => toast.error(errorMessage(error)),
       },
@@ -191,7 +259,7 @@ export function MembersPage() {
   const columns: AppColumnDef<MemberDto>[] = [
     {
       id: 'member',
-      header: 'Member',
+      header: 'Anggota',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
           <Avatar>
@@ -201,7 +269,7 @@ export function MembersPage() {
             <p className="truncate font-medium">
               {row.original.user.name}
               {row.original.id === membershipId && (
-                <span className="ml-1.5 text-xs font-normal text-muted-foreground">(you)</span>
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">(Anda)</span>
               )}
             </p>
             <p className="truncate text-xs text-muted-foreground">{row.original.user.email}</p>
@@ -211,7 +279,7 @@ export function MembersPage() {
     },
     {
       id: 'roles',
-      header: 'Roles',
+      header: 'Peran',
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
           {row.original.roles.map((role) => (
@@ -223,32 +291,42 @@ export function MembersPage() {
       ),
     },
     {
+      id: 'manager',
+      header: 'Melapor kepada',
+      cell: ({ row }) =>
+        row.original.manager ? (
+          <span className="text-sm">{row.original.manager.user.name}</span>
+        ) : (
+          <span className="text-sm text-muted-foreground">—</span>
+        ),
+    },
+    {
       id: 'status',
       header: 'Status',
       cell: ({ row }) =>
         row.original.status === 'ACTIVE' ? (
-          <Badge variant="success">Active</Badge>
+          <Badge variant="success">Aktif</Badge>
         ) : (
-          <Badge variant="destructive">Suspended</Badge>
+          <Badge variant="destructive">Ditangguhkan</Badge>
         ),
     },
     {
       id: 'joined',
-      header: 'Joined',
+      header: 'Bergabung',
       cell: ({ row }) => (
         <span className="text-muted-foreground">{formatDate(row.original.joinedAt)}</span>
       ),
     },
     {
       id: 'actions',
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => <span className="sr-only">Tindakan</span>,
       cell: ({ row }) => {
         const member = row.original;
         if (member.id === membershipId || (!canManage && !canRemove)) return null;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label={`Actions for ${member.user.name}`}>
+              <Button variant="ghost" size="icon" aria-label={`Tindakan untuk ${member.user.name}`}>
                 <MoreHorizontalIcon />
               </Button>
             </DropdownMenuTrigger>
@@ -256,15 +334,18 @@ export function MembersPage() {
               {canManage && (
                 <>
                   <DropdownMenuItem onSelect={() => setEditing(member)}>
-                    <ShieldIcon /> Change roles
+                    <ShieldIcon /> Ubah peran
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setEditingManager(member)}>
+                    <UserCheckIcon /> Atur atasan
                   </DropdownMenuItem>
                   {member.status === 'ACTIVE' ? (
                     <DropdownMenuItem onSelect={() => setStatus(member, 'SUSPENDED')}>
-                      <UserXIcon /> Suspend
+                      <UserXIcon /> Tangguhkan
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem onSelect={() => setStatus(member, 'ACTIVE')}>
-                      <UserCheckIcon /> Reactivate
+                      <UserCheckIcon /> Aktifkan kembali
                     </DropdownMenuItem>
                   )}
                 </>
@@ -273,7 +354,7 @@ export function MembersPage() {
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onSelect={() => setRemoving(member)}>
-                    <UserMinusIcon /> Remove from workspace
+                    <UserMinusIcon /> Keluarkan dari workspace
                   </DropdownMenuItem>
                 </>
               )}
@@ -289,13 +370,17 @@ export function MembersPage() {
   return (
     <>
       <PageHeader
-        title="Members"
-        description="People with access to this workspace and their roles."
+        title={teamOnly ? 'Tim Anda' : 'Anggota'}
+        description={
+          teamOnly
+            ? 'Anda dan orang yang melapor kepada Anda.'
+            : 'Orang yang memiliki akses ke workspace ini beserta perannya.'
+        }
         actions={
           can('members.invite') ? (
             <Button asChild variant="outline">
               <Link href={`/t/${tenant.slug}/invitations?import=1`}>
-                <UploadIcon /> Import CSV
+                <UploadIcon /> Impor CSV
               </Link>
             </Button>
           ) : undefined
@@ -310,9 +395,9 @@ export function MembersPage() {
               setSearch(e.target.value);
               setParams((p) => ({ ...p, page: 1 }));
             }}
-            placeholder="Search by name or email"
+            placeholder="Cari berdasarkan nama atau email"
             className="pl-9"
-            aria-label="Search members"
+            aria-label="Cari anggota"
             maxLength={100}
           />
         </div>
@@ -320,13 +405,13 @@ export function MembersPage() {
           value={params.status ?? ALL}
           onValueChange={(v) => setParams((p) => ({ ...p, page: 1, status: parseStatus(v) }))}
         >
-          <SelectTrigger className="sm:w-40" aria-label="Filter by status">
+          <SelectTrigger className="sm:w-40" aria-label="Filter menurut status">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>All statuses</SelectItem>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="SUSPENDED">Suspended</SelectItem>
+            <SelectItem value={ALL}>Semua status</SelectItem>
+            <SelectItem value="ACTIVE">Aktif</SelectItem>
+            <SelectItem value="SUSPENDED">Ditangguhkan</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -335,11 +420,11 @@ export function MembersPage() {
             setParams((p) => ({ ...p, page: 1, roleId: v === ALL ? undefined : v }))
           }
         >
-          <SelectTrigger className="sm:w-44" aria-label="Filter by role">
+          <SelectTrigger className="sm:w-44" aria-label="Filter menurut peran">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>All roles</SelectItem>
+            <SelectItem value={ALL}>Semua peran</SelectItem>
             {roles.data?.map((role) => (
               <SelectItem key={role.id} value={role.id}>
                 {role.name}
@@ -351,13 +436,13 @@ export function MembersPage() {
           value={`${params.sortBy}:${params.sortOrder}`}
           onValueChange={(v) => setParams((p) => ({ ...p, page: 1, ...parseSort(v) }))}
         >
-          <SelectTrigger className="sm:w-44" aria-label="Sort members">
+          <SelectTrigger className="sm:w-44" aria-label="Urutkan anggota">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="joinedAt:desc">Newest first</SelectItem>
-            <SelectItem value="joinedAt:asc">Oldest first</SelectItem>
-            <SelectItem value="name:asc">Name A–Z</SelectItem>
+            <SelectItem value="joinedAt:desc">Terbaru dulu</SelectItem>
+            <SelectItem value="joinedAt:asc">Terlama dulu</SelectItem>
+            <SelectItem value="name:asc">Nama A–Z</SelectItem>
             <SelectItem value="email:asc">Email A–Z</SelectItem>
           </SelectContent>
         </Select>
@@ -371,27 +456,36 @@ export function MembersPage() {
         onRetry={() => void query.refetch()}
         onPageChange={(page) => setParams((p) => ({ ...p, page }))}
         getRowId={(m) => m.id}
-        emptyTitle="No members found"
-        emptyDescription={debouncedSearch ? 'Try a different search or filter.' : undefined}
+        emptyTitle="Tidak ada anggota ditemukan"
+        emptyDescription={debouncedSearch ? 'Coba pencarian atau filter lain.' : undefined}
       />
       {editing && roles.data && (
         <EditRolesDialog member={editing} roles={roles.data} onClose={() => setEditing(null)} />
       )}
+      {editingManager && query.data && (
+        <EditManagerDialog
+          member={editingManager}
+          candidates={query.data.data}
+          onClose={() => setEditingManager(null)}
+        />
+      )}
       <ConfirmDialog
         open={!!removing}
         onOpenChange={(open) => !open && setRemoving(null)}
-        title="Remove member?"
+        title="Keluarkan anggota?"
         description={
-          removing ? `${removing.user.name} will immediately lose access to ${tenant.name}.` : ''
+          removing
+            ? `${removing.user.name} akan segera kehilangan akses ke ${tenant.name}.`
+            : ''
         }
-        confirmLabel="Remove"
+        confirmLabel="Keluarkan"
         destructive
         pending={removeMember.isPending}
         onConfirm={() => {
           if (!removing) return;
           removeMember.mutate(removing.id, {
             onSuccess: () => {
-              toast.success(`${removing.user.name} was removed`);
+              toast.success(`${removing.user.name} dikeluarkan`);
               setRemoving(null);
             },
             onError: (error) => toast.error(errorMessage(error)),

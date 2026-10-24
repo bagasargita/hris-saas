@@ -17,6 +17,14 @@ export const queryKeys = {
   auditLogs: (tenantId: string, params?: object) =>
     ['tenant', tenantId, 'audit-logs', params ?? {}] as const,
   billing: (tenantId: string) => ['tenant', tenantId, 'billing'] as const,
+  attendanceMe: (tenantId: string) => ['tenant', tenantId, 'attendance', 'me'] as const,
+  attendanceSites: (tenantId: string) => ['tenant', tenantId, 'attendance', 'sites'] as const,
+  attendanceSchedule: (tenantId: string, membershipId: string) =>
+    ['tenant', tenantId, 'attendance', 'schedule', membershipId] as const,
+  attendanceRecords: (tenantId: string, params?: object) =>
+    ['tenant', tenantId, 'attendance', 'records', params ?? {}] as const,
+  attendanceCalendar: (tenantId: string, params?: object) =>
+    ['tenant', tenantId, 'attendance', 'calendar', params ?? {}] as const,
   platformTenants: (params?: object) => ['platform', 'tenants', params ?? {}] as const,
   platformUsers: (params?: object) => ['platform', 'users', params ?? {}] as const,
   platformAuditLogs: (params?: object) => ['platform', 'audit-logs', params ?? {}] as const,

@@ -16,36 +16,128 @@ export const PERMISSIONS = {
   AUDIT_LOGS_READ: 'audit_logs.read',
   BILLING_READ: 'billing.read',
   BILLING_MANAGE: 'billing.manage',
+  ATTENDANCE_READ: 'attendance.read',
+  ATTENDANCE_CLOCK: 'attendance.clock',
+  ATTENDANCE_SITES_MANAGE: 'attendance.sites.manage',
+  ATTENDANCE_SCHEDULES_MANAGE: 'attendance.schedules.manage',
+  ATTENDANCE_APPROVE: 'attendance.approve',
+  ATTENDANCE_TEAM_READ: 'attendance.team.read',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 export const ALL_PERMISSIONS: readonly PermissionKey[] = Object.values(PERMISSIONS);
 
+export type PermissionGroup =
+  | 'Tenant'
+  | 'Anggota'
+  | 'Peran'
+  | 'Audit'
+  | 'Tagihan'
+  | 'Absensi';
+
 export interface PermissionDefinition {
   key: PermissionKey;
-  group: 'Tenant' | 'Members' | 'Roles' | 'Audit' | 'Billing';
+  group: PermissionGroup;
   description: string;
 }
 
 export const PERMISSION_DEFINITIONS: readonly PermissionDefinition[] = [
-  { key: 'tenant.read', group: 'Tenant', description: 'View workspace details and dashboard' },
-  { key: 'tenant.update', group: 'Tenant', description: 'Change workspace name and settings' },
-  { key: 'members.read', group: 'Members', description: 'View members and invitations' },
+  {
+    key: 'tenant.read',
+    group: 'Tenant',
+    description: 'Melihat detail workspace dan dasbor',
+  },
+  {
+    key: 'tenant.update',
+    group: 'Tenant',
+    description: 'Mengubah nama dan pengaturan workspace',
+  },
+  {
+    key: 'members.read',
+    group: 'Anggota',
+    description: 'Melihat anggota dan undangan',
+  },
   {
     key: 'members.invite',
-    group: 'Members',
-    description: 'Invite new members and revoke invitations',
+    group: 'Anggota',
+    description: 'Mengundang anggota baru dan mencabut undangan',
   },
-  { key: 'members.update', group: 'Members', description: 'Change member roles and status' },
-  { key: 'members.remove', group: 'Members', description: 'Remove members from the workspace' },
-  { key: 'roles.read', group: 'Roles', description: 'View roles and their permissions' },
-  { key: 'roles.create', group: 'Roles', description: 'Create custom roles' },
-  { key: 'roles.update', group: 'Roles', description: 'Edit roles and their permissions' },
-  { key: 'roles.delete', group: 'Roles', description: 'Delete custom roles' },
-  { key: 'audit_logs.read', group: 'Audit', description: 'View the workspace audit log' },
-  { key: 'billing.read', group: 'Billing', description: 'View plan and subscription details' },
-  { key: 'billing.manage', group: 'Billing', description: 'Change plan and payment details' },
+  {
+    key: 'members.update',
+    group: 'Anggota',
+    description: 'Mengubah peran dan status anggota',
+  },
+  {
+    key: 'members.remove',
+    group: 'Anggota',
+    description: 'Menghapus anggota dari workspace',
+  },
+  {
+    key: 'roles.read',
+    group: 'Peran',
+    description: 'Melihat peran dan izinnya',
+  },
+  {
+    key: 'roles.create',
+    group: 'Peran',
+    description: 'Membuat peran kustom',
+  },
+  {
+    key: 'roles.update',
+    group: 'Peran',
+    description: 'Mengedit peran dan izinnya',
+  },
+  {
+    key: 'roles.delete',
+    group: 'Peran',
+    description: 'Menghapus peran kustom',
+  },
+  {
+    key: 'audit_logs.read',
+    group: 'Audit',
+    description: 'Melihat log audit workspace',
+  },
+  {
+    key: 'billing.read',
+    group: 'Tagihan',
+    description: 'Melihat detail paket dan langganan',
+  },
+  {
+    key: 'billing.manage',
+    group: 'Tagihan',
+    description: 'Mengubah paket dan detail pembayaran',
+  },
+  {
+    key: 'attendance.read',
+    group: 'Absensi',
+    description: 'Melihat catatan absensi sendiri dan kalender',
+  },
+  {
+    key: 'attendance.clock',
+    group: 'Absensi',
+    description: 'Clock in dan clock out di lokasi kerja ber-geofence',
+  },
+  {
+    key: 'attendance.sites.manage',
+    group: 'Absensi',
+    description: 'Membuat dan mengedit lokasi kerja absensi',
+  },
+  {
+    key: 'attendance.schedules.manage',
+    group: 'Absensi',
+    description: 'Menetapkan jadwal kerja mingguan',
+  },
+  {
+    key: 'attendance.approve',
+    group: 'Absensi',
+    description: 'Menyetujui atau menolak catatan absensi',
+  },
+  {
+    key: 'attendance.team.read',
+    group: 'Absensi',
+    description: 'Melihat kalender absensi tim dan antrean persetujuan',
+  },
 ];
 
 export function isPermissionKey(value: string): value is PermissionKey {

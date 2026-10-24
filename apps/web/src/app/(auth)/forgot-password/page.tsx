@@ -3,16 +3,16 @@ import Link from 'next/link';
 import { AuthCard } from '@/components/auth/auth-card';
 import { ForgotPasswordForm } from '@/components/auth/password-reset-forms';
 
-export const metadata: Metadata = { title: 'Forgot password' };
+export const metadata: Metadata = { title: 'Lupa kata sandi' };
 
 export default function ForgotPasswordPage() {
   return (
     <AuthCard
-      title="Reset your password"
-      description="Enter your email and we will send you a reset link"
+      title="Atur ulang kata sandi"
+      description="Masukkan email Anda dan kami akan mengirim tautan reset"
       footer={
         <Link href="/login" className="hover:text-foreground">
-          Back to sign in
+          Kembali ke masuk
         </Link>
       }
     >

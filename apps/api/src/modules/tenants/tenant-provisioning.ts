@@ -13,6 +13,35 @@ export async function syncPermissionCatalog(tx: Prisma.TransactionClient): Promi
   }
 }
 
+/**
+ * Grants any newly added default permissions onto existing system roles.
+ * Custom (non-system) roles are left untouched.
+ */
+export async function syncSystemRolePermissions(tx: Prisma.TransactionClient): Promise<void> {
+  const permissions = await tx.permission.findMany({ select: { id: true, key: true } });
+  const permissionIdByKey = new Map(permissions.map((p) => [p.key, p.id]));
+
+  for (const definition of DEFAULT_TENANT_ROLES) {
+    const roles = await tx.role.findMany({
+      where: { key: definition.key, isSystem: true },
+      select: { id: true },
+    });
+    for (const role of roles) {
+      for (const key of definition.permissions) {
+        const permissionId = permissionIdByKey.get(key);
+        if (!permissionId) continue;
+        await tx.rolePermission.upsert({
+          where: {
+            roleId_permissionId: { roleId: role.id, permissionId },
+          },
+          create: { roleId: role.id, permissionId },
+          update: {},
+        });
+      }
+    }
+  }
+}
+
 export interface ProvisionTenantInput {
   name: string;
   slug: string;

@@ -21,6 +21,7 @@ import {
 } from '../../common/http/request-context';
 import {
   ListMembersQueryDto,
+  UpdateMemberManagerDto,
   UpdateMemberRolesDto,
   UpdateMemberStatusDto,
 } from './memberships.dto';
@@ -37,7 +38,7 @@ export class MembershipsController {
     @Tenant() tenant: TenantContext,
     @Query() query: ListMembersQueryDto,
   ): Promise<Paginated<MemberDto>> {
-    return this.memberships.list(tenant.tenant.id, query);
+    return this.memberships.list(tenant, query);
   }
 
   @Get(':memberId')
@@ -45,7 +46,7 @@ export class MembershipsController {
     @Tenant() tenant: TenantContext,
     @Param('memberId', new ParseUUIDPipe()) memberId: string,
   ): Promise<MemberDto> {
-    return this.memberships.get(tenant.tenant.id, memberId);
+    return this.memberships.get(tenant, memberId);
   }
 
   @RequirePermissions('members.update')
@@ -70,6 +71,18 @@ export class MembershipsController {
     @ReqMeta() meta: RequestMeta,
   ): Promise<MemberDto> {
     return this.memberships.updateStatus(tenant, auth.user.id, memberId, dto.status, meta);
+  }
+
+  @RequirePermissions('members.update')
+  @Patch(':memberId/manager')
+  updateManager(
+    @Tenant() tenant: TenantContext,
+    @Auth() auth: AuthContext,
+    @Param('memberId', new ParseUUIDPipe()) memberId: string,
+    @Body() dto: UpdateMemberManagerDto,
+    @ReqMeta() meta: RequestMeta,
+  ): Promise<MemberDto> {
+    return this.memberships.updateManager(tenant, auth.user.id, memberId, dto.managerId, meta);
   }
 
   @RequirePermissions('members.remove')

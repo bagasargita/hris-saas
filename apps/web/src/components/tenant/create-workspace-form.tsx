@@ -44,7 +44,7 @@ export function CreateWorkspaceForm({ onCreated }: { onCreated?: () => void }) {
   return (
     <form onSubmit={(event) => void onSubmit(event)} noValidate className="grid gap-4">
       {formError && <FormAlert>{formError}</FormAlert>}
-      <FormField id="ws-name" label="Workspace name" error={errors.name?.message}>
+      <FormField id="ws-name" label="Nama workspace" error={errors.name?.message}>
         <Input
           id="ws-name"
           placeholder="Acme Inc."
@@ -55,9 +55,9 @@ export function CreateWorkspaceForm({ onCreated }: { onCreated?: () => void }) {
       </FormField>
       <FormField
         id="ws-slug"
-        label="URL (optional)"
+        label="URL (opsional)"
         error={errors.slug?.message}
-        hint="Leave empty to generate one from the name."
+        hint="Kosongkan untuk membuat otomatis dari nama."
       >
         <div className="flex items-center rounded-md border border-input shadow-xs focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
           <span className="pl-3 text-sm text-muted-foreground">/t/</span>
@@ -71,7 +71,7 @@ export function CreateWorkspaceForm({ onCreated }: { onCreated?: () => void }) {
         </div>
       </FormField>
       <Button type="submit" disabled={createTenant.isPending}>
-        {createTenant.isPending ? 'Creating…' : 'Create workspace'}
+        {createTenant.isPending ? 'Membuat…' : 'Buat workspace'}
       </Button>
     </form>
   );

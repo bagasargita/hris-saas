@@ -17,28 +17,30 @@ export function Pagination({
 
   return (
     <div className="flex flex-col items-center justify-between gap-2 text-sm text-muted-foreground sm:flex-row">
-      <p aria-live="polite">{total === 0 ? 'No results' : `Showing ${from}–${to} of ${total}`}</p>
+      <p aria-live="polite">
+        {total === 0 ? 'Tidak ada hasil' : `Menampilkan ${from}–${to} dari ${total}`}
+      </p>
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          aria-label="Previous page"
+          aria-label="Halaman sebelumnya"
         >
-          <ChevronLeftIcon /> Previous
+          <ChevronLeftIcon /> Sebelumnya
         </Button>
         <span className="tabular-nums">
-          Page {Math.min(page, Math.max(totalPages, 1))} of {Math.max(totalPages, 1)}
+          Halaman {Math.min(page, Math.max(totalPages, 1))} dari {Math.max(totalPages, 1)}
         </span>
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          aria-label="Next page"
+          aria-label="Halaman berikutnya"
         >
-          Next <ChevronRightIcon />
+          Berikutnya <ChevronRightIcon />
         </Button>
       </div>
     </div>

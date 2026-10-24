@@ -51,6 +51,18 @@ enum UserTokenPurpose {
   PASSWORD_RESET
 }
 
+enum AttendanceRecordStatus {
+  OPEN
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AttendanceApprovalDecision {
+  APPROVED
+  REJECTED
+}
+
 model User {
   id                String       @id @default(uuid(7)) @db.Uuid
   /// Always stored lower-cased and trimmed.
@@ -83,11 +95,15 @@ model Tenant {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  memberships Membership[]
-  roles       Role[]
-  invitations Invitation[]
-  auditLogs   AuditLog[]
-  sessions    Session[]
+  memberships         Membership[]
+  roles               Role[]
+  invitations         Invitation[]
+  auditLogs           AuditLog[]
+  sessions            Session[]
+  attendanceSites     AttendanceSite[]
+  workSchedules       WorkSchedule[]
+  attendanceRecords   AttendanceRecord[]
+  attendanceApprovals AttendanceApproval[]
 
   @@map("tenants")
 }
@@ -96,18 +112,26 @@ model Membership {
   id        String           @id @default(uuid(7)) @db.Uuid
   tenantId  String           @db.Uuid
   userId    String           @db.Uuid
+  /// Direct manager within the same tenant (reporting line).
+  managerId String?          @db.Uuid
   status    MembershipStatus @default(ACTIVE)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  tenant Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roles  MembershipRole[]
+  tenant   Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manager  Membership?       @relation("MembershipReports", fields: [managerId, tenantId], references: [id, tenantId], onDelete: SetNull)
+  reports  Membership[]      @relation("MembershipReports")
+  roles    MembershipRole[]
+  schedules WorkSchedule[]
+  attendanceRecords AttendanceRecord[]
+  attendanceApprovals AttendanceApproval[]
 
   @@unique([tenantId, userId])
   // Target of the composite foreign key from MembershipRole; guarantees role assignments stay in-tenant.
   @@unique([id, tenantId])
   @@index([userId])
+  @@index([managerId])
   @@map("memberships")
 }
 
@@ -259,4 +283,97 @@ model AuditLog {
   @@index([actorId, createdAt(sort: Desc)])
   @@index([action])
   @@map("audit_logs")
+}
+
+/// Geofenced work site used for attendance clock-in/out.
+model AttendanceSite {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  tenantId      String   @db.Uuid
+  name          String
+  address       String?
+  latitude      Float
+  longitude     Float
+  radiusMeters  Int      @default(150)
+  /// IANA timezone for work-date derivation (e.g. Asia/Jakarta).
+  timezone      String   @default("UTC")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant    Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  schedules WorkSchedule[]
+  records   AttendanceRecord[]
+
+  @@index([tenantId])
+  @@map("attendance_sites")
+}
+
+/// Weekly schedule template: one row per weekday per membership.
+model WorkSchedule {
+  id           String @id @default(uuid(7)) @db.Uuid
+  tenantId     String @db.Uuid
+  membershipId String @db.Uuid
+  /// 0 = Sunday … 6 = Saturday (JS Date.getDay()).
+  weekday      Int
+  /// Minutes from midnight local to the site/schedule day.
+  startMinutes Int
+  endMinutes   Int
+  siteId       String? @db.Uuid
+
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  membership Membership      @relation(fields: [membershipId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  site       AttendanceSite? @relation(fields: [siteId], references: [id], onDelete: SetNull)
+
+  @@unique([membershipId, weekday])
+  @@index([tenantId])
+  @@index([siteId])
+  @@map("work_schedules")
+}
+
+model AttendanceRecord {
+  id                 String                 @id @default(uuid(7)) @db.Uuid
+  tenantId           String                 @db.Uuid
+  membershipId       String                 @db.Uuid
+  siteId             String                 @db.Uuid
+  /// Calendar date in the site timezone (YYYY-MM-DD stored as Date @db.Date).
+  workDate           DateTime               @db.Date
+  clockInAt          DateTime
+  clockOutAt         DateTime?
+  clockInLat         Float
+  clockInLng         Float
+  clockOutLat        Float?
+  clockOutLng        Float?
+  status             AttendanceRecordStatus @default(OPEN)
+  note               String?
+  lateMinutes        Int?
+  earlyLeaveMinutes  Int?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  tenant     Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  membership Membership           @relation(fields: [membershipId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  site       AttendanceSite       @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  approval   AttendanceApproval?
+
+  @@index([tenantId, workDate])
+  @@index([membershipId, status])
+  @@index([tenantId, status])
+  @@map("attendance_records")
+}
+
+model AttendanceApproval {
+  id                   String                      @id @default(uuid(7)) @db.Uuid
+  tenantId             String                      @db.Uuid
+  recordId             String                      @unique @db.Uuid
+  approverMembershipId String                      @db.Uuid
+  decision             AttendanceApprovalDecision
+  comment              String?
+  decidedAt            DateTime                    @default(now())
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  record   AttendanceRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  approver Membership       @relation(fields: [approverMembershipId, tenantId], references: [id, tenantId], onDelete: Restrict)
+
+  @@index([tenantId])
+  @@map("attendance_approvals")
 }

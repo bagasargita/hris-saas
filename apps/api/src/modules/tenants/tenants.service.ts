@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   type MembershipSummaryDto,
+  SYSTEM_ROLE_KEYS,
   type TenantContextResponse,
   type TenantDto,
   type TenantStatsResponse,
@@ -43,11 +44,35 @@ export class TenantsService {
     return memberships.map(toMembershipSummary);
   }
 
+  /**
+   * First workspace: any authenticated user.
+   * Additional workspaces: only users who already own at least one active membership.
+   */
+  private async assertCanCreateWorkspace(userId: string): Promise<void> {
+    const membershipCount = await this.prisma.membership.count({ where: { userId } });
+    if (membershipCount === 0) return;
+
+    const ownsOne = await this.prisma.membership.count({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        roles: { some: { role: { key: SYSTEM_ROLE_KEYS.OWNER } } },
+      },
+    });
+    if (ownsOne === 0) {
+      throw AppException.forbidden(
+        'Only workspace owners can create additional workspaces. Ask an owner to invite you, or use a workspace you own.',
+      );
+    }
+  }
+
   async create(
     auth: AuthContext,
     dto: CreateTenantDto,
     meta: RequestMeta,
   ): Promise<TenantContextResponse> {
+    await this.assertCanCreateWorkspace(auth.user.id);
+
     const explicitSlug = dto.slug !== undefined;
     const baseSlug = dto.slug ?? slugify(dto.name);
 

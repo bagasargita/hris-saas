@@ -1,5 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayMaxSize, ArrayNotEmpty, IsArray, IsIn, IsOptional, IsUUID } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  IsArray,
+  IsIn,
+  IsOptional,
+  IsUUID,
+  ValidateIf,
+} from 'class-validator';
 import { SearchPageQueryDto } from '../../common/pagination/pagination';
 
 export const MEMBER_STATUSES = ['ACTIVE', 'SUSPENDED'] as const;
@@ -33,4 +41,11 @@ export class UpdateMemberRolesDto {
 export class UpdateMemberStatusDto {
   @IsIn(MEMBER_STATUSES)
   status!: MemberStatusValue;
+}
+
+export class UpdateMemberManagerDto {
+  /** Null clears the reporting line. */
+  @ValidateIf((_, value) => value !== null)
+  @IsUUID()
+  managerId!: string | null;
 }

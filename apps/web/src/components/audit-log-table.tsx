@@ -16,12 +16,12 @@ import type { AuditListParams } from '@/lib/api/hooks';
 import { formatDateTime } from '@/lib/utils';
 
 const ACTION_FILTERS = [
-  { value: 'all', label: 'All events' },
-  { value: 'auth.', label: 'Authentication' },
-  { value: 'member.', label: 'Members' },
-  { value: 'role.', label: 'Roles' },
-  { value: 'invitation.', label: 'Invitations' },
-  { value: 'tenant.', label: 'Workspace' },
+  { value: 'all', label: 'Semua peristiwa' },
+  { value: 'auth.', label: 'Autentikasi' },
+  { value: 'member.', label: 'Anggota' },
+  { value: 'role.', label: 'Peran' },
+  { value: 'invitation.', label: 'Undangan' },
+  { value: 'tenant.', label: 'Ruang kerja' },
   { value: 'platform.', label: 'Platform' },
 ] as const;
 
@@ -64,7 +64,7 @@ export function AuditLogTable({
   const columns: AppColumnDef<AuditLogDto>[] = [
     {
       id: 'when',
-      header: 'When',
+      header: 'Waktu',
       cell: ({ row }) => (
         <span className="text-muted-foreground tabular-nums">
           {formatDateTime(row.original.createdAt)}
@@ -73,7 +73,7 @@ export function AuditLogTable({
     },
     {
       id: 'action',
-      header: 'Event',
+      header: 'Peristiwa',
       cell: ({ row }) => (
         <Badge variant={actionVariant(row.original.action)} className="font-mono">
           {row.original.action}
@@ -82,7 +82,7 @@ export function AuditLogTable({
     },
     {
       id: 'actor',
-      header: 'Actor',
+      header: 'Pelaku',
       cell: ({ row }) =>
         row.original.actor ? (
           <div className="min-w-0">
@@ -90,14 +90,14 @@ export function AuditLogTable({
             <p className="truncate text-xs text-muted-foreground">{row.original.actor.email}</p>
           </div>
         ) : (
-          <span className="text-muted-foreground">System</span>
+          <span className="text-muted-foreground">Sistem</span>
         ),
     },
     ...(showTenant
       ? [
           {
             id: 'tenant',
-            header: 'Tenant',
+            header: 'Penyewa',
             cell: ({ row }) => (
               <code className="text-xs">{row.original.tenantId?.slice(0, 8) ?? '—'}</code>
             ),
@@ -106,7 +106,7 @@ export function AuditLogTable({
       : []),
     {
       id: 'details',
-      header: 'Details',
+      header: 'Detail',
       cell: ({ row }) => <MetadataSummary metadata={row.original.metadata} />,
     },
     {
@@ -129,7 +129,7 @@ export function AuditLogTable({
             setParams((p) => ({ ...p, page: 1, action: v === 'all' ? undefined : v }))
           }
         >
-          <SelectTrigger className="w-48" aria-label="Filter by event type">
+          <SelectTrigger className="w-48" aria-label="Filter menurut jenis peristiwa">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -150,7 +150,7 @@ export function AuditLogTable({
         onRetry={() => void query.refetch()}
         onPageChange={(page) => setParams((p) => ({ ...p, page }))}
         getRowId={(log) => log.id}
-        emptyTitle="No events recorded"
+        emptyTitle="Belum ada peristiwa tercatat"
       />
     </>
   );

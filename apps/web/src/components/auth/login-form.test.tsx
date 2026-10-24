@@ -32,9 +32,9 @@ describe('LoginForm', () => {
 
   it('validates input before calling the API', async () => {
     renderWithClient(<LoginForm />);
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
-    expect(await screen.findByText('Email is required')).toBeInTheDocument();
-    expect(screen.getByText('Password is required')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
+    expect(await screen.findByText('Email wajib diisi')).toBeInTheDocument();
+    expect(screen.getByText('Kata sandi wajib diisi')).toBeInTheDocument();
     expect(apiPost).not.toHaveBeenCalled();
   });
 
@@ -44,8 +44,8 @@ describe('LoginForm', () => {
     renderWithClient(<LoginForm />);
 
     await userEvent.type(screen.getByLabelText('Email'), 'olivia@acme.test');
-    await userEvent.type(screen.getByLabelText(/^Password/), 'Correct-horse-battery-1');
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await userEvent.type(screen.getByLabelText(/^Kata sandi/), 'Correct-horse-battery-1');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/tenants'));
     expect(apiPost).toHaveBeenCalledWith('/auth/login', {
@@ -59,8 +59,8 @@ describe('LoginForm', () => {
     apiPost.mockResolvedValueOnce({});
     renderWithClient(<LoginForm />);
     await userEvent.type(screen.getByLabelText('Email'), 'olivia@acme.test');
-    await userEvent.type(screen.getByLabelText(/^Password/), 'x');
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await userEvent.type(screen.getByLabelText(/^Kata sandi/), 'x');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/t/acme/members'));
   });
 
@@ -70,11 +70,11 @@ describe('LoginForm', () => {
     );
     renderWithClient(<LoginForm />);
     await userEvent.type(screen.getByLabelText('Email'), 'olivia@acme.test');
-    await userEvent.type(screen.getByLabelText(/^Password/), 'wrong-password');
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await userEvent.type(screen.getByLabelText(/^Kata sandi/), 'wrong-password');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Invalid email or password');
-    expect(screen.getByLabelText(/^Password/)).toHaveValue('');
+    expect(screen.getByLabelText(/^Kata sandi/)).toHaveValue('');
     expect(replace).not.toHaveBeenCalled();
   });
 
@@ -84,11 +84,13 @@ describe('LoginForm', () => {
     );
     renderWithClient(<LoginForm />);
     await userEvent.type(screen.getByLabelText('Email'), 'new@acme.test');
-    await userEvent.type(screen.getByLabelText(/^Password/), 'Correct-horse-battery-1');
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await userEvent.type(screen.getByLabelText(/^Kata sandi/), 'Correct-horse-battery-1');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
 
     apiPost.mockResolvedValueOnce({});
-    await userEvent.click(await screen.findByRole('button', { name: 'Resend verification email' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Kirim ulang email verifikasi' }),
+    );
     expect(apiPost).toHaveBeenLastCalledWith('/auth/resend-verification', {
       email: 'new@acme.test',
     });

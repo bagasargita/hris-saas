@@ -24,7 +24,7 @@ export default async function TenantLayout({
   if (!context) {
     return (
       <div className="mx-auto max-w-lg px-4 py-24">
-        <AccessDenied description="This workspace does not exist or you do not have access to it." />
+        <AccessDenied description="Workspace ini tidak ada atau Anda tidak memiliki akses ke dalamnya." />
       </div>
     );
   }

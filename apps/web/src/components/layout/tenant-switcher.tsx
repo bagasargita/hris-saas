@@ -17,6 +17,7 @@ import {
 import { apiPost } from '@/lib/api/client';
 import { errorMessage } from '@/lib/api/errors';
 import { queryKeys } from '@/lib/api/query-keys';
+import { canCreateWorkspace } from '@/lib/workspace-access';
 
 export function TenantSwitcher({
   current,
@@ -28,6 +29,7 @@ export function TenantSwitcher({
   const router = useRouter();
   const queryClient = useQueryClient();
   const active = memberships.filter((m) => m.status === 'ACTIVE' && m.tenant.status === 'ACTIVE');
+  const allowCreate = canCreateWorkspace(memberships);
 
   const switchTo = async (membership: MembershipSummaryDto) => {
     try {
@@ -46,7 +48,7 @@ export function TenantSwitcher({
         <Button
           variant="ghost"
           className="w-full justify-between gap-2 px-2"
-          aria-label="Switch workspace"
+          aria-label="Ganti ruang kerja"
         >
           <span className="flex min-w-0 items-center gap-2">
             <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs font-semibold text-primary">
@@ -58,7 +60,7 @@ export function TenantSwitcher({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Workspaces</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs text-muted-foreground">Ruang kerja</DropdownMenuLabel>
         {active.map((membership) => (
           <DropdownMenuItem key={membership.tenant.id} onSelect={() => void switchTo(membership)}>
             <span className="flex size-5 items-center justify-center rounded bg-muted text-[10px] font-semibold">
@@ -68,10 +70,14 @@ export function TenantSwitcher({
             {membership.tenant.id === current.id && <CheckIcon />}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => router.push('/tenants?create=1')}>
-          <PlusIcon /> Create workspace
-        </DropdownMenuItem>
+        {allowCreate && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => router.push('/tenants?create=1')}>
+              <PlusIcon /> Buat ruang kerja
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

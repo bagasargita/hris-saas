@@ -50,9 +50,9 @@ function SearchBox({
 
 function StatusBadge({ status }: { status: 'ACTIVE' | 'SUSPENDED' }) {
   return status === 'ACTIVE' ? (
-    <Badge variant="success">Active</Badge>
+    <Badge variant="success">Aktif</Badge>
   ) : (
-    <Badge variant="destructive">Suspended</Badge>
+    <Badge variant="destructive">Ditangguhkan</Badge>
   );
 }
 
@@ -78,12 +78,12 @@ export function AdminTenantsPage() {
     },
     {
       id: 'plan',
-      header: 'Plan',
+      header: 'Paket',
       cell: ({ row }) => <Badge variant="secondary">{row.original.plan}</Badge>,
     },
     {
       id: 'members',
-      header: 'Members',
+      header: 'Anggota',
       cell: ({ row }) => <span className="tabular-nums">{row.original.memberCount}</span>,
     },
     {
@@ -93,14 +93,14 @@ export function AdminTenantsPage() {
     },
     {
       id: 'created',
-      header: 'Created',
+      header: 'Dibuat',
       cell: ({ row }) => (
         <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
       ),
     },
     {
       id: 'actions',
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => <span className="sr-only">Tindakan</span>,
       cell: ({ row }) => {
         const next = row.original.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
         return (
@@ -118,14 +118,14 @@ export function AdminTenantsPage() {
                   {
                     onSuccess: () =>
                       toast.success(
-                        `${row.original.name} ${next === 'SUSPENDED' ? 'suspended' : 'reactivated'}`,
+                        `${row.original.name} ${next === 'SUSPENDED' ? 'ditangguhkan' : 'diaktifkan kembali'}`,
                       ),
                     onError: (error) => toast.error(errorMessage(error)),
                   },
                 )
               }
             >
-              {next === 'SUSPENDED' ? 'Suspend' : 'Reactivate'}
+              {next === 'SUSPENDED' ? 'Tangguhkan' : 'Aktifkan kembali'}
             </Button>
             <Button
               variant="ghost"
@@ -134,7 +134,7 @@ export function AdminTenantsPage() {
               disabled={setStatus.isPending || deleteTenant.isPending}
               onClick={() => setPendingDelete(row.original)}
             >
-              Delete
+              Hapus
             </Button>
           </div>
         );
@@ -145,8 +145,8 @@ export function AdminTenantsPage() {
   return (
     <>
       <PageHeader
-        title="Tenants"
-        description="All workspaces on the platform. Suspending blocks access; deleting permanently removes the workspace and its memberships, roles, invitations, and tenant audit history."
+        title="Tenant"
+        description="Semua workspace di platform. Penangguhan memblokir akses; penghapusan secara permanen menghapus workspace beserta keanggotaan, peran, undangan, dan riwayat audit tenant."
       />
       <SearchBox
         value={search}
@@ -154,7 +154,7 @@ export function AdminTenantsPage() {
           setSearch(v);
           setParams((p) => ({ ...p, page: 1 }));
         }}
-        label="Search tenants by name or slug"
+        label="Cari tenant berdasarkan nama atau slug"
       />
       <DataTable
         columns={columns}
@@ -165,32 +165,32 @@ export function AdminTenantsPage() {
         onRetry={() => void query.refetch()}
         onPageChange={(page) => setParams((p) => ({ ...p, page }))}
         getRowId={(t) => t.id}
-        emptyTitle="No tenants found"
+        emptyTitle="Tenant tidak ditemukan"
       />
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(open) => {
           if (!open) setPendingDelete(null);
         }}
-        title="Delete workspace permanently?"
+        title="Hapus workspace secara permanen?"
         description={
           pendingDelete ? (
             <>
-              This permanently deletes <strong>{pendingDelete.name}</strong> (/t/
-              {pendingDelete.slug}), including {pendingDelete.memberCount} membership
-              {pendingDelete.memberCount === 1 ? '' : 's'}, roles, invitations, and tenant audit
-              logs. User accounts are kept. This cannot be undone.
+              Tindakan ini menghapus permanen <strong>{pendingDelete.name}</strong> (/t/
+              {pendingDelete.slug}), termasuk {pendingDelete.memberCount} keanggotaan, peran,
+              undangan, dan log audit tenant. Akun pengguna tetap ada. Tindakan ini tidak dapat
+              dibatalkan.
             </>
           ) : null
         }
-        confirmLabel="Delete workspace"
+        confirmLabel="Hapus workspace"
         destructive
         pending={deleteTenant.isPending}
         onConfirm={() => {
           if (!pendingDelete) return;
           deleteTenant.mutate(pendingDelete.id, {
             onSuccess: () => {
-              toast.success(`${pendingDelete.name} deleted`);
+              toast.success(`${pendingDelete.name} dihapus`);
               setPendingDelete(null);
             },
             onError: (error) => toast.error(errorMessage(error)),
@@ -211,7 +211,7 @@ export function AdminUsersPage({ currentUserId }: { currentUserId: string }) {
   const columns: AppColumnDef<PlatformUserDto>[] = [
     {
       id: 'user',
-      header: 'User',
+      header: 'Pengguna',
       cell: ({ row }) => (
         <div>
           <p className="font-medium">
@@ -231,14 +231,14 @@ export function AdminUsersPage({ currentUserId }: { currentUserId: string }) {
       header: 'Email',
       cell: ({ row }) =>
         row.original.emailVerified ? (
-          <Badge variant="success">Verified</Badge>
+          <Badge variant="success">Terverifikasi</Badge>
         ) : (
-          <Badge variant="warning">Unverified</Badge>
+          <Badge variant="warning">Belum terverifikasi</Badge>
         ),
     },
     {
       id: 'workspaces',
-      header: 'Workspaces',
+      header: 'Workspace',
       cell: ({ row }) => <span className="tabular-nums">{row.original.membershipCount}</span>,
     },
     {
@@ -248,14 +248,14 @@ export function AdminUsersPage({ currentUserId }: { currentUserId: string }) {
     },
     {
       id: 'created',
-      header: 'Joined',
+      header: 'Bergabung',
       cell: ({ row }) => (
         <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
       ),
     },
     {
       id: 'actions',
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => <span className="sr-only">Tindakan</span>,
       cell: ({ row }) => {
         if (row.original.id === currentUserId) return null;
         const next = row.original.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
@@ -272,15 +272,15 @@ export function AdminUsersPage({ currentUserId }: { currentUserId: string }) {
                   onSuccess: () =>
                     toast.success(
                       next === 'SUSPENDED'
-                        ? `${row.original.name} suspended and signed out`
-                        : `${row.original.name} reactivated`,
+                        ? `${row.original.name} ditangguhkan dan keluar dari semua sesi`
+                        : `${row.original.name} diaktifkan kembali`,
                     ),
                   onError: (error) => toast.error(errorMessage(error)),
                 },
               )
             }
           >
-            {next === 'SUSPENDED' ? 'Suspend' : 'Reactivate'}
+            {next === 'SUSPENDED' ? 'Tangguhkan' : 'Aktifkan kembali'}
           </Button>
         );
       },
@@ -290,8 +290,8 @@ export function AdminUsersPage({ currentUserId }: { currentUserId: string }) {
   return (
     <>
       <PageHeader
-        title="Users"
-        description="Every account on the platform. Suspending a user signs them out everywhere."
+        title="Pengguna"
+        description="Setiap akun di platform. Menangguhkan pengguna akan mengeluarkannya dari semua sesi."
       />
       <SearchBox
         value={search}
@@ -299,7 +299,7 @@ export function AdminUsersPage({ currentUserId }: { currentUserId: string }) {
           setSearch(v);
           setParams((p) => ({ ...p, page: 1 }));
         }}
-        label="Search users by name or email"
+        label="Cari pengguna berdasarkan nama atau email"
       />
       <DataTable
         columns={columns}
@@ -310,7 +310,7 @@ export function AdminUsersPage({ currentUserId }: { currentUserId: string }) {
         onRetry={() => void query.refetch()}
         onPageChange={(page) => setParams((p) => ({ ...p, page }))}
         getRowId={(u) => u.id}
-        emptyTitle="No users found"
+        emptyTitle="Pengguna tidak ditemukan"
       />
     </>
   );
@@ -320,8 +320,8 @@ export function AdminAuditLogsPage() {
   return (
     <>
       <PageHeader
-        title="Platform audit log"
-        description="Events across all tenants, including platform administration actions."
+        title="Log audit platform"
+        description="Peristiwa di semua tenant, termasuk tindakan administrasi platform."
       />
       <AuditLogTable useData={usePlatformAuditLogs} showTenant includePlatformFilter />
     </>

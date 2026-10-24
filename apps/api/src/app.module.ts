@@ -11,6 +11,7 @@ import { NoStoreInterceptor } from './common/interceptors/no-store.interceptor';
 import { createValidationPipe } from './common/pipes/validation.pipe';
 import { AppConfig, AppConfigModule } from './config/app-config';
 import { PrismaModule } from './database/prisma.service';
+import { AttendanceModule } from './modules/attendance/attendance.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
@@ -97,6 +98,7 @@ const REQUEST_ID_PATTERN = /^[A-Za-z0-9._-]{8,128}$/;
     MembershipsModule,
     RolesModule,
     InvitationsModule,
+    AttendanceModule,
     BillingModule,
     PlatformModule,
     HealthModule,

@@ -15,14 +15,14 @@ import { Badge } from '@/components/ui/badge';
 import { AppShell, type ShellNavItem } from './app-shell';
 
 const ACCOUNT_NAV: ShellNavItem[] = [
-  { label: 'Profile', href: '/account', icon: UserIcon },
-  { label: 'Security', href: '/account/security', icon: KeyRoundIcon },
+  { label: 'Profil', href: '/account', icon: UserIcon },
+  { label: 'Keamanan', href: '/account/security', icon: KeyRoundIcon },
 ];
 
 const ADMIN_NAV: ShellNavItem[] = [
-  { label: 'Tenants', href: '/admin', icon: Building2Icon },
-  { label: 'Users', href: '/admin/users', icon: UsersIcon },
-  { label: 'Audit log', href: '/admin/audit-logs', icon: ScrollTextIcon },
+  { label: 'Tenant', href: '/admin', icon: Building2Icon },
+  { label: 'Pengguna', href: '/admin/users', icon: UsersIcon },
+  { label: 'Log audit', href: '/admin/audit-logs', icon: ScrollTextIcon },
 ];
 
 function BackToWorkspaces() {
@@ -31,7 +31,7 @@ function BackToWorkspaces() {
       href="/tenants"
       className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
     >
-      <ArrowLeftIcon className="size-4" /> All workspaces
+      <ArrowLeftIcon className="size-4" /> Semua workspace
     </Link>
   );
 }
@@ -52,7 +52,7 @@ export function AdminShell({ user, children }: { user: UserDto; children: ReactN
       sidebarHeader={<BackToWorkspaces />}
       sidebarFooter={
         <Badge variant="destructive" className="w-full justify-center">
-          Platform administration
+          Administrasi platform
         </Badge>
       }
     >

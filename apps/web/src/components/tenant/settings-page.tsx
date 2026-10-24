@@ -47,7 +47,7 @@ export function SettingsPage() {
     try {
       await update.mutateAsync(values);
       form.reset(values);
-      toast.success('Workspace updated');
+      toast.success('Workspace diperbarui');
       router.refresh();
     } catch (error) {
       toast.error(errorMessage(error));
@@ -57,21 +57,21 @@ export function SettingsPage() {
   return (
     <>
       <PageHeader
-        title="Settings"
-        description="Manage how this workspace appears to its members."
+        title="Pengaturan"
+        description="Kelola tampilan workspace ini bagi anggotanya."
       />
       <div className="grid max-w-2xl gap-6">
         <Card>
           <form onSubmit={(event) => void onSubmit(event)} noValidate className="contents">
             <CardHeader>
-              <CardTitle>General</CardTitle>
+              <CardTitle>Umum</CardTitle>
               <CardDescription>
-                Created {formatDate(tenant.createdAt)} · URL{' '}
+                Dibuat {formatDate(tenant.createdAt)} · URL{' '}
                 <code className="text-xs">/t/{tenant.slug}</code>
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FormField id="tenant-name" label="Workspace name" error={errors.name?.message}>
+              <FormField id="tenant-name" label="Nama workspace" error={errors.name?.message}>
                 <Input
                   id="tenant-name"
                   disabled={!canUpdate}
@@ -83,7 +83,7 @@ export function SettingsPage() {
             {canUpdate && (
               <CardFooter className="justify-end">
                 <Button type="submit" disabled={!isDirty || update.isPending}>
-                  {update.isPending ? 'Saving…' : 'Save changes'}
+                  {update.isPending ? 'Menyimpan…' : 'Simpan perubahan'}
                 </Button>
               </CardFooter>
             )}
@@ -91,15 +91,15 @@ export function SettingsPage() {
         </Card>
         <Card className="border-destructive/30">
           <CardHeader>
-            <CardTitle>Leave workspace</CardTitle>
+            <CardTitle>Tinggalkan workspace</CardTitle>
             <CardDescription>
-              You will lose access immediately. The last owner cannot leave until another owner is
-              assigned.
+              Anda akan segera kehilangan akses. Pemilik terakhir tidak dapat keluar hingga pemilik
+              lain ditetapkan.
             </CardDescription>
           </CardHeader>
           <CardFooter className="justify-end">
             <Button variant="destructive" onClick={() => setConfirmLeave(true)}>
-              Leave {tenant.name}
+              Tinggalkan {tenant.name}
             </Button>
           </CardFooter>
         </Card>
@@ -107,15 +107,15 @@ export function SettingsPage() {
       <ConfirmDialog
         open={confirmLeave}
         onOpenChange={setConfirmLeave}
-        title={`Leave ${tenant.name}?`}
-        description="You will need a new invitation to rejoin."
-        confirmLabel="Leave workspace"
+        title={`Tinggalkan ${tenant.name}?`}
+        description="Anda memerlukan undangan baru untuk bergabung kembali."
+        confirmLabel="Tinggalkan workspace"
         destructive
         pending={leave.isPending}
         onConfirm={() =>
           leave.mutate(undefined, {
             onSuccess: () => {
-              toast.success(`You left ${tenant.name}`);
+              toast.success(`Anda telah meninggalkan ${tenant.name}`);
               router.replace('/tenants');
               router.refresh();
             },

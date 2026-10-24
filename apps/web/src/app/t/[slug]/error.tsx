@@ -11,7 +11,7 @@ export default function TenantError({
   return (
     <div className="mx-auto max-w-lg py-12">
       <ErrorState
-        description="This page failed to load. If the problem persists, contact support."
+        description="Halaman gagal dimuat. Jika masalah berlanjut, hubungi dukungan."
         onRetry={reset}
       />
     </div>

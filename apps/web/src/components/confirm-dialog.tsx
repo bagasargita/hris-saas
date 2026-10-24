@@ -16,7 +16,7 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = 'Confirm',
+  confirmLabel = 'Konfirmasi',
   destructive = false,
   pending = false,
   onConfirm,
@@ -39,14 +39,14 @@ export function ConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
+            Batal
           </Button>
           <Button
             variant={destructive ? 'destructive' : 'default'}
             onClick={onConfirm}
             disabled={pending}
           >
-            {pending ? 'Working…' : confirmLabel}
+            {pending ? 'Memproses…' : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

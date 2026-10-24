@@ -17,6 +17,25 @@ export interface DefaultRoleDefinition {
   permissions: readonly PermissionKey[];
 }
 
+const ATTENDANCE_ADMIN: readonly PermissionKey[] = [
+  'attendance.read',
+  'attendance.clock',
+  'attendance.sites.manage',
+  'attendance.schedules.manage',
+  'attendance.approve',
+  'attendance.team.read',
+];
+
+const ATTENDANCE_MANAGER: readonly PermissionKey[] = [
+  'attendance.read',
+  'attendance.clock',
+  'attendance.schedules.manage',
+  'attendance.approve',
+  'attendance.team.read',
+];
+
+const ATTENDANCE_MEMBER: readonly PermissionKey[] = ['attendance.read', 'attendance.clock'];
+
 /**
  * Defaults copied into every new tenant. Tenants can edit these (except the owner role)
  * and create their own, so they are a starting point rather than a security boundary.
@@ -24,14 +43,14 @@ export interface DefaultRoleDefinition {
 export const DEFAULT_TENANT_ROLES: readonly DefaultRoleDefinition[] = [
   {
     key: 'owner',
-    name: 'Owner',
-    description: 'Full control of the workspace, including billing and ownership.',
+    name: 'Pemilik',
+    description: 'Kontrol penuh atas workspace, termasuk tagihan dan kepemilikan.',
     permissions: ALL_PERMISSIONS,
   },
   {
     key: 'admin',
     name: 'Admin',
-    description: 'Manage members, roles and settings. Cannot manage billing.',
+    description: 'Mengelola anggota, peran, dan pengaturan. Tidak dapat mengelola tagihan.',
     permissions: [
       'tenant.read',
       'tenant.update',
@@ -45,24 +64,31 @@ export const DEFAULT_TENANT_ROLES: readonly DefaultRoleDefinition[] = [
       'roles.delete',
       'audit_logs.read',
       'billing.read',
+      ...ATTENDANCE_ADMIN,
     ],
   },
   {
     key: 'manager',
-    name: 'Manager',
-    description: 'Invite and view members, view roles.',
-    permissions: ['tenant.read', 'members.read', 'members.invite', 'roles.read'],
+    name: 'Manajer',
+    description: 'Mengundang dan melihat anggota, mengelola absensi tim.',
+    permissions: [
+      'tenant.read',
+      'members.read',
+      'members.invite',
+      'roles.read',
+      ...ATTENDANCE_MANAGER,
+    ],
   },
   {
     key: 'member',
-    name: 'Member',
-    description: 'Standard access to the workspace.',
-    permissions: ['tenant.read', 'members.read'],
+    name: 'Anggota',
+    description: 'Akses standar ke workspace.',
+    permissions: ['tenant.read', 'members.read', ...ATTENDANCE_MEMBER],
   },
   {
     key: 'viewer',
-    name: 'Viewer',
-    description: 'Read-only access to the workspace overview.',
+    name: 'Pengamat',
+    description: 'Akses hanya baca ke ringkasan workspace.',
     permissions: ['tenant.read'],
   },
 ];

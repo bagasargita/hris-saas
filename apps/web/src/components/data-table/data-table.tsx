@@ -34,7 +34,7 @@ export function DataTable<TData extends RowData>({
   onRetry,
   onPageChange,
   getRowId,
-  emptyTitle = 'Nothing here yet',
+  emptyTitle = 'Belum ada data',
   emptyDescription,
 }: {
   columns: AppColumnDef<TData>[];

@@ -223,6 +223,29 @@ describe('API conventions (integration)', () => {
       expect(dup.status).toBe(409);
       expect(await h.prisma.tenant.count()).toBe(1);
     });
+
+    it('forbids non-owners from creating additional workspaces', async () => {
+      const owner = await h.createUser({ email: 'owner@acme.test' });
+      const member = await h.createUser({ email: 'mike@acme.test' });
+      const tenant = await h.createTenant('acme', owner.id);
+      await h.addMember(tenant.id, member.id, role(tenant.roleIds, 'member'));
+
+      const asMember = await h.loginAs('mike@acme.test');
+      const denied = await asMember.post('/api/v1/tenants', {
+        name: 'Side Hustle',
+        slug: 'side-hustle',
+      });
+      expect(denied.status).toBe(403);
+      expect(denied.body.error.code).toBe('FORBIDDEN');
+      expect(await h.prisma.tenant.count({ where: { slug: 'side-hustle' } })).toBe(0);
+
+      const asOwner = await h.loginAs('owner@acme.test');
+      const ok = await asOwner.post('/api/v1/tenants', {
+        name: 'Second Co',
+        slug: 'second-co',
+      });
+      expect(ok.status).toBe(201);
+    });
   });
 
   describe('billing boundary', () => {

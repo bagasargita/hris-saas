@@ -42,7 +42,7 @@ export function AcceptInvitation() {
     retry: false,
   });
 
-  if (!token) return <FormAlert>This invitation link is incomplete.</FormAlert>;
+  if (!token) return <FormAlert>Tautan undangan ini tidak lengkap.</FormAlert>;
   if (preview.isPending || me.isPending) {
     return (
       <div className="grid gap-3">
@@ -54,7 +54,7 @@ export function AcceptInvitation() {
   if (preview.isError)
     return (
       <FormAlert>
-        {errorMessage(preview.error, 'This invitation is invalid or has expired.')}
+        {errorMessage(preview.error, 'Undangan ini tidak valid atau sudah kedaluwarsa.')}
       </FormAlert>
     );
 
@@ -85,7 +85,8 @@ export function AcceptInvitation() {
         <div className="min-w-0 text-sm">
           <p className="truncate font-medium">{invitation.tenantName}</p>
           <p className="text-muted-foreground">
-            Join as <strong className="text-foreground">{invitation.roleName}</strong> · expires{' '}
+            Bergabung sebagai <strong className="text-foreground">{invitation.roleName}</strong> ·
+            kedaluwarsa{' '}
             {formatDate(invitation.expiresAt)}
           </p>
         </div>
@@ -94,25 +95,25 @@ export function AcceptInvitation() {
       {user ? (
         user.email === invitation.email ? (
           <Button onClick={() => void accept()} disabled={accepting} className="w-full">
-            {accepting ? 'Joining…' : `Join ${invitation.tenantName}`}
+            {accepting ? 'Bergabung…' : `Bergabung dengan ${invitation.tenantName}`}
           </Button>
         ) : (
           <FormAlert>
-            This invitation was sent to <strong>{invitation.email}</strong>, but you are signed in
-            as <strong>{user.email}</strong>. Sign in with the invited account to accept it.
+            Undangan ini dikirim ke <strong>{invitation.email}</strong>, tetapi Anda masuk sebagai{' '}
+            <strong>{user.email}</strong>. Masuk dengan akun yang diundang untuk menerimanya.
           </FormAlert>
         )
       ) : (
         <div className="grid gap-2">
           <p className="text-center text-sm text-muted-foreground">
-            Sign in or create an account as{' '}
-            <strong className="text-foreground">{invitation.email}</strong> to accept.
+            Masuk atau buat akun sebagai{' '}
+            <strong className="text-foreground">{invitation.email}</strong> untuk menerima undangan.
           </p>
           <Button asChild className="w-full">
-            <Link href={`/login?next=${encodeURIComponent(returnTo)}`}>Sign in to accept</Link>
+            <Link href={`/login?next=${encodeURIComponent(returnTo)}`}>Masuk untuk menerima</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link href="/register">Create an account</Link>
+            <Link href="/register">Buat akun</Link>
           </Button>
         </div>
       )}

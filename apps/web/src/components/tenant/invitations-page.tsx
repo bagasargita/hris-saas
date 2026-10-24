@@ -53,10 +53,10 @@ const STATUS_BADGE: Record<
   InvitationStatus,
   { label: string; variant: 'success' | 'secondary' | 'destructive' | 'warning' }
 > = {
-  PENDING: { label: 'Pending', variant: 'warning' },
-  ACCEPTED: { label: 'Accepted', variant: 'success' },
-  REVOKED: { label: 'Revoked', variant: 'destructive' },
-  EXPIRED: { label: 'Expired', variant: 'secondary' },
+  PENDING: { label: 'Menunggu', variant: 'warning' },
+  ACCEPTED: { label: 'Diterima', variant: 'success' },
+  REVOKED: { label: 'Dicabut', variant: 'destructive' },
+  EXPIRED: { label: 'Kedaluwarsa', variant: 'secondary' },
 };
 
 const STATUS_FILTERS = ['PENDING', 'ACCEPTED', 'REVOKED', 'EXPIRED'] as const;
@@ -87,7 +87,7 @@ function InviteDialog({
     setFormError(null);
     try {
       await create.mutateAsync(values);
-      toast.success(`Invitation sent to ${values.email}`);
+      toast.success(`Undangan dikirim ke ${values.email}`);
       form.reset();
       onOpenChange(false);
     } catch (error) {
@@ -99,28 +99,28 @@ function InviteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite someone</DialogTitle>
+          <DialogTitle>Undang seseorang</DialogTitle>
           <DialogDescription>
-            They will receive an email with a link that expires in 7 days.
+            Mereka akan menerima email berisi tautan yang kedaluwarsa dalam 7 hari.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={(event) => void onSubmit(event)} noValidate className="grid gap-4">
           {formError && <FormAlert>{formError}</FormAlert>}
-          <FormField id="invite-email" label="Email address" error={errors.email?.message}>
+          <FormField id="invite-email" label="Alamat email" error={errors.email?.message}>
             <Input
               id="invite-email"
               type="email"
               autoComplete="off"
-              placeholder="colleague@company.com"
+              placeholder="rekan@perusahaan.com"
               aria-invalid={!!errors.email}
               {...form.register('email')}
             />
           </FormField>
           <FormField
             id="invite-role"
-            label="Role"
+            label="Peran"
             error={errors.roleId?.message}
-            hint="You can only invite with roles whose permissions you hold."
+            hint="Anda hanya dapat mengundang dengan peran yang izinnya Anda miliki."
           >
             <Controller
               control={form.control}
@@ -128,7 +128,7 @@ function InviteDialog({
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger id="invite-role" aria-invalid={!!errors.roleId}>
-                    <SelectValue placeholder="Choose a role" />
+                    <SelectValue placeholder="Pilih peran" />
                   </SelectTrigger>
                   <SelectContent>
                     {assignable.map((role) => (
@@ -143,10 +143,10 @@ function InviteDialog({
           </FormField>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Batal
             </Button>
             <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? 'Sending…' : 'Send invitation'}
+              {create.isPending ? 'Mengirim…' : 'Kirim undangan'}
             </Button>
           </DialogFooter>
         </form>
@@ -192,7 +192,7 @@ function ImportDialog({
     event.preventDefault();
     setFormError(null);
     if (!file) {
-      setFormError('Choose a CSV file first.');
+      setFormError('Pilih file CSV terlebih dahulu.');
       return;
     }
     try {
@@ -200,12 +200,12 @@ function ImportDialog({
       setResult(outcome);
       if (outcome.invited > 0) {
         toast.success(
-          `Sent ${String(outcome.invited)} invitation${outcome.invited === 1 ? '' : 's'}`,
+          `${String(outcome.invited)} undangan terkirim`,
         );
       } else if (outcome.failed > 0) {
-        toast.error('No invitations were sent. Check the row errors below.');
+        toast.error('Tidak ada undangan terkirim. Periksa kesalahan baris di bawah.');
       } else {
-        toast.message('Nothing to import');
+        toast.message('Tidak ada yang diimpor');
       }
     } catch (error) {
       setFormError(errorMessage(error));
@@ -222,13 +222,13 @@ function ImportDialog({
     >
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Import members from CSV</DialogTitle>
+          <DialogTitle>Impor anggota dari CSV</DialogTitle>
           <DialogDescription>
-            Upload a CSV with <code className="text-xs">email</code> and{' '}
-            <code className="text-xs">role</code> columns. Role must be a role key such as{' '}
+            Unggah CSV dengan kolom <code className="text-xs">email</code> dan{' '}
+            <code className="text-xs">role</code>. Peran harus berupa kunci peran seperti{' '}
             <code className="text-xs">member</code>, <code className="text-xs">manager</code>,{' '}
-            <code className="text-xs">admin</code>, or <code className="text-xs">viewer</code> (not
-            owner). Each row sends an invitation email.
+            <code className="text-xs">admin</code>, atau <code className="text-xs">viewer</code>{' '}
+            (bukan owner). Setiap baris mengirim email undangan.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={(event) => void onSubmit(event)} className="grid gap-4">
@@ -241,10 +241,10 @@ function ImportDialog({
               disabled={downloading}
               onClick={() => void onDownloadTemplate()}
             >
-              <DownloadIcon /> {downloading ? 'Downloading…' : 'Download template'}
+              <DownloadIcon /> {downloading ? 'Mengunduh…' : 'Unduh templat'}
             </Button>
           </div>
-          <FormField id="invite-csv" label="CSV file" hint="Max 100 rows, 100 KB.">
+          <FormField id="invite-csv" label="File CSV" hint="Maks. 100 baris, 100 KB.">
             <Input
               id="invite-csv"
               ref={fileRef}
@@ -258,18 +258,18 @@ function ImportDialog({
           </FormField>
           {file && (
             <p className="text-sm text-muted-foreground">
-              Selected: {file.name} ({Math.ceil(file.size / 1024)} KB)
+              Dipilih: {file.name} ({Math.ceil(file.size / 1024)} KB)
             </p>
           )}
           {result && (
             <div className="max-h-56 overflow-auto rounded-md border text-sm">
               <div className="border-b bg-muted/40 px-3 py-2 font-medium">
-                {result.invited} invited · {result.skipped} skipped · {result.failed} failed
+                {result.invited} diundang · {result.skipped} dilewati · {result.failed} gagal
               </div>
               <ul className="divide-y">
                 {result.rows.map((row) => (
                   <li key={`${String(row.line)}-${row.email}`} className="px-3 py-2">
-                    <span className="font-medium">Line {row.line}</span>
+                    <span className="font-medium">Baris {row.line}</span>
                     {row.email ? ` · ${row.email}` : ''}
                     {row.role ? ` · ${row.role}` : ''}
                     <span
@@ -299,10 +299,10 @@ function ImportDialog({
                 onOpenChange(false);
               }}
             >
-              Close
+              Tutup
             </Button>
             <Button type="submit" disabled={importInvites.isPending || !file}>
-              {importInvites.isPending ? 'Importing…' : 'Upload and invite'}
+              {importInvites.isPending ? 'Mengimpor…' : 'Unggah dan undang'}
             </Button>
           </DialogFooter>
         </form>
@@ -345,7 +345,7 @@ export function InvitationsPage() {
     },
     {
       id: 'role',
-      header: 'Role',
+      header: 'Peran',
       cell: ({ row }) => <Badge variant="secondary">{row.original.role.name}</Badge>,
     },
     {
@@ -358,21 +358,21 @@ export function InvitationsPage() {
     },
     {
       id: 'invitedBy',
-      header: 'Invited by',
+      header: 'Diundang oleh',
       cell: ({ row }) => (
         <span className="text-muted-foreground">{row.original.invitedBy?.name ?? '—'}</span>
       ),
     },
     {
       id: 'expires',
-      header: 'Expires',
+      header: 'Berakhir',
       cell: ({ row }) => (
         <span className="text-muted-foreground">{formatDate(row.original.expiresAt)}</span>
       ),
     },
     {
       id: 'actions',
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => <span className="sr-only">Tindakan</span>,
       cell: ({ row }) =>
         canInvite && row.original.status === 'PENDING' ? (
           <div className="flex justify-end gap-1">
@@ -382,12 +382,12 @@ export function InvitationsPage() {
               disabled={resend.isPending}
               onClick={() =>
                 resend.mutate(row.original.id, {
-                  onSuccess: () => toast.success('Invitation resent with a new link'),
+                  onSuccess: () => toast.success('Undangan dikirim ulang dengan tautan baru'),
                   onError: (error) => toast.error(errorMessage(error)),
                 })
               }
             >
-              <RefreshCwIcon /> Resend
+              <RefreshCwIcon /> Kirim ulang
             </Button>
             <Button
               variant="ghost"
@@ -396,12 +396,12 @@ export function InvitationsPage() {
               disabled={revoke.isPending}
               onClick={() =>
                 revoke.mutate(row.original.id, {
-                  onSuccess: () => toast.success('Invitation revoked'),
+                  onSuccess: () => toast.success('Undangan dicabut'),
                   onError: (error) => toast.error(errorMessage(error)),
                 })
               }
             >
-              <XCircleIcon /> Revoke
+              <XCircleIcon /> Cabut
             </Button>
           </div>
         ) : null,
@@ -413,16 +413,16 @@ export function InvitationsPage() {
   return (
     <>
       <PageHeader
-        title="Invitations"
-        description="Pending and past invitations to this workspace. Import a CSV to invite many people at once."
+        title="Undangan"
+        description="Undangan aktif dan sebelumnya untuk workspace ini. Impor CSV untuk mengundang banyak orang sekaligus."
         actions={
           canInvite && (
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => setImportDialog(true)}>
-                <UploadIcon /> Import CSV
+                <UploadIcon /> Impor CSV
               </Button>
               <Button onClick={() => setDialog(true)}>
-                <MailPlusIcon /> Invite people
+                <MailPlusIcon /> Undang orang
               </Button>
             </div>
           )
@@ -433,11 +433,11 @@ export function InvitationsPage() {
           value={params.status ?? 'all'}
           onValueChange={(v) => setParams((p) => ({ ...p, page: 1, status: parseStatus(v) }))}
         >
-          <SelectTrigger className="w-44" aria-label="Filter by status">
+          <SelectTrigger className="w-44" aria-label="Filter menurut status">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All invitations</SelectItem>
+            <SelectItem value="all">Semua undangan</SelectItem>
             {STATUS_FILTERS.map((status) => (
               <SelectItem key={status} value={status}>
                 {STATUS_BADGE[status].label}
@@ -455,9 +455,9 @@ export function InvitationsPage() {
         onRetry={() => void query.refetch()}
         onPageChange={(page) => setParams((p) => ({ ...p, page }))}
         getRowId={(i) => i.id}
-        emptyTitle="No invitations"
+        emptyTitle="Tidak ada undangan"
         emptyDescription={
-          canInvite ? 'Invite teammates to collaborate in this workspace.' : undefined
+          canInvite ? 'Undang rekan kerja untuk berkolaborasi di workspace ini.' : undefined
         }
       />
       {canInvite && <InviteDialog open={inviteOpen} onOpenChange={setDialog} />}

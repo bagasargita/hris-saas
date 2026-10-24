@@ -38,10 +38,10 @@ export function ChangePasswordCard() {
     try {
       await apiPost('/users/me/password', { currentPassword, newPassword });
       form.reset();
-      toast.success('Password changed. Other sessions were signed out.');
+      toast.success('Kata sandi diubah. Sesi lain telah keluar.');
     } catch (error) {
       if (error instanceof ApiError && error.code === 'INVALID_CREDENTIALS') {
-        form.setError('currentPassword', { message: 'Current password is incorrect' });
+        form.setError('currentPassword', { message: 'Kata sandi saat ini salah' });
         return;
       }
       toast.error(errorMessage(error));
@@ -52,15 +52,15 @@ export function ChangePasswordCard() {
     <Card>
       <form onSubmit={(event) => void onSubmit(event)} noValidate className="contents">
         <CardHeader>
-          <CardTitle>Password</CardTitle>
+          <CardTitle>Kata sandi</CardTitle>
           <CardDescription>
-            Changing your password signs out all of your other sessions.
+            Mengubah kata sandi akan mengeluarkan semua sesi lain Anda.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <FormField
             id="current-password"
-            label="Current password"
+            label="Kata sandi saat ini"
             error={errors.currentPassword?.message}
           >
             <Input
@@ -73,9 +73,9 @@ export function ChangePasswordCard() {
           </FormField>
           <FormField
             id="new-password"
-            label="New password"
+            label="Kata sandi baru"
             error={errors.newPassword?.message}
-            hint={`At least ${PASSWORD_MIN} characters.`}
+            hint={`Minimal ${PASSWORD_MIN} karakter.`}
           >
             <Input
               id="new-password"
@@ -87,7 +87,7 @@ export function ChangePasswordCard() {
           </FormField>
           <FormField
             id="confirm-password"
-            label="Confirm new password"
+            label="Konfirmasi kata sandi baru"
             error={errors.confirm?.message}
           >
             <Input
@@ -101,7 +101,7 @@ export function ChangePasswordCard() {
         </CardContent>
         <CardFooter className="justify-end">
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Updating…' : 'Update password'}
+            {isSubmitting ? 'Memperbarui…' : 'Perbarui kata sandi'}
           </Button>
         </CardFooter>
       </form>
@@ -110,7 +110,7 @@ export function ChangePasswordCard() {
 }
 
 function describeAgent(userAgent: string | null): string {
-  if (!userAgent) return 'Unknown device';
+  if (!userAgent) return 'Perangkat tidak dikenal';
   const browser = /Edg\//.test(userAgent)
     ? 'Edge'
     : /Chrome\//.test(userAgent)
@@ -131,7 +131,7 @@ function describeAgent(userAgent: string | null): string {
           : /Linux/.test(userAgent)
             ? 'Linux'
             : '';
-  return os ? `${browser} on ${os}` : browser;
+  return os ? `${browser} di ${os}` : browser;
 }
 
 export function SessionsCard() {
@@ -143,8 +143,8 @@ export function SessionsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Active sessions</CardTitle>
-        <CardDescription>Devices currently signed in to your account.</CardDescription>
+        <CardTitle>Sesi aktif</CardTitle>
+        <CardDescription>Perangkat yang saat ini masuk ke akun Anda.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-2">
         {sessions.isError && <ErrorState onRetry={() => void sessions.refetch()} />}
@@ -156,10 +156,10 @@ export function SessionsCard() {
             <div className="min-w-0 flex-1 text-sm">
               <p className="flex items-center gap-2 font-medium">
                 {describeAgent(session.userAgent)}
-                {session.current && <Badge variant="success">This device</Badge>}
+                {session.current && <Badge variant="success">Perangkat ini</Badge>}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {session.ipAddress ?? 'Unknown IP'} · last active{' '}
+                {session.ipAddress ?? 'IP tidak dikenal'} · terakhir aktif{' '}
                 {formatDateTime(session.lastUsedAt)}
               </p>
             </div>
@@ -170,12 +170,12 @@ export function SessionsCard() {
                 disabled={revoke.isPending}
                 onClick={() =>
                   revoke.mutate(session.id, {
-                    onSuccess: () => toast.success('Session signed out'),
+                    onSuccess: () => toast.success('Sesi telah keluar'),
                     onError: (error) => toast.error(errorMessage(error)),
                   })
                 }
               >
-                Sign out
+                Keluar
               </Button>
             )}
           </div>
@@ -190,13 +190,13 @@ export function SessionsCard() {
               revokeOthers.mutate(undefined, {
                 onSuccess: (result) =>
                   toast.success(
-                    `Signed out ${result.revoked} other session${result.revoked === 1 ? '' : 's'}`,
+                    `Keluar dari ${result.revoked} sesi lain${result.revoked === 1 ? '' : ''}`,
                   ),
                 onError: (error) => toast.error(errorMessage(error)),
               })
             }
           >
-            <LogOutIcon /> Sign out all other sessions
+            <LogOutIcon /> Keluar dari semua sesi lain
           </Button>
         </CardFooter>
       )}

@@ -56,7 +56,7 @@ export function EmptyState(props: {
 }
 
 export function ErrorState({
-  title = 'Something went wrong',
+  title = 'Terjadi kesalahan',
   description,
   onRetry,
 }: {
@@ -69,11 +69,11 @@ export function ErrorState({
       icon={AlertTriangleIcon}
       tone="destructive"
       title={title}
-      description={description ?? 'We could not load this content. Please try again.'}
+      description={description ?? 'Konten ini tidak dapat dimuat. Silakan coba lagi.'}
       action={
         onRetry && (
           <Button variant="outline" size="sm" onClick={onRetry}>
-            Try again
+            Coba lagi
           </Button>
         )
       }
@@ -91,14 +91,14 @@ export function AccessDenied({
   return (
     <StateBlock
       icon={LockIcon}
-      title="You don't have access"
+      title="Anda tidak memiliki akses"
       description={
         description ??
-        'Your role in this workspace does not allow this action. Ask a workspace administrator if you need access.'
+        'Peran Anda di workspace ini tidak mengizinkan tindakan ini. Hubungi administrator workspace jika Anda membutuhkan akses.'
       }
       action={
         <Button variant="outline" size="sm" asChild>
-          <Link href={backHref}>Go back</Link>
+          <Link href={backHref}>Kembali</Link>
         </Button>
       }
     />

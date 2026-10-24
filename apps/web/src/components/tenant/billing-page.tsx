@@ -31,7 +31,7 @@ export function BillingPage() {
 
   return (
     <>
-      <PageHeader title="Billing" description="Your plan and usage." />
+      <PageHeader title="Tagihan" description="Paket dan penggunaan Anda." />
       {billing.isError ? (
         <ErrorState onRetry={() => void billing.refetch()} />
       ) : billing.isPending ? (
@@ -45,22 +45,22 @@ export function BillingPage() {
             >
               <InfoIcon className="mt-0.5 size-4 shrink-0 text-primary" />
               <p>
-                Online plan changes are not available yet because no payment provider is connected
-                to this deployment. Contact support to change plans.
+                Perubahan paket online belum tersedia karena tidak ada penyedia pembayaran yang
+                terhubung ke deployment ini. Hubungi dukungan untuk mengubah paket.
               </p>
             </div>
           )}
           <Card>
             <CardHeader>
-              <CardTitle>Usage</CardTitle>
-              <CardDescription>Active members on the current plan</CardDescription>
+              <CardTitle>Penggunaan</CardTitle>
+              <CardDescription>Anggota aktif pada paket saat ini</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-semibold tabular-nums">
                 {billing.data.memberCount}
                 <span className="text-base font-normal text-muted-foreground">
                   {' '}
-                  / {billing.data.memberLimit ?? 'unlimited'}
+                  / {billing.data.memberLimit ?? 'tak terbatas'}
                 </span>
               </p>
               {billing.data.memberLimit !== null && (
@@ -85,12 +85,12 @@ export function BillingPage() {
                 >
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      {plan.name} {current && <Badge>Current</Badge>}
+                      {plan.name} {current && <Badge>Saat ini</Badge>}
                     </CardTitle>
                     <CardDescription>
                       {plan.priceMonthlyUsd === null
-                        ? 'Custom pricing'
-                        : `$${plan.priceMonthlyUsd} / month`}
+                        ? 'Harga kustom'
+                        : `$${plan.priceMonthlyUsd} / bulan`}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1">
@@ -111,11 +111,11 @@ export function BillingPage() {
                       }
                       title={
                         !billing.data.providerConfigured
-                          ? 'No payment provider configured'
+                          ? 'Penyedia pembayaran belum dikonfigurasi'
                           : undefined
                       }
                     >
-                      {current ? 'Current plan' : `Switch to ${plan.name}`}
+                      {current ? 'Paket saat ini' : `Beralih ke ${plan.name}`}
                     </Button>
                   </CardFooter>
                 </Card>

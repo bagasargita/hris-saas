@@ -35,7 +35,7 @@ function NavLinks({
     .sort((a, b) => b.length - a.length)[0];
 
   return (
-    <nav className="flex flex-col gap-0.5" aria-label="Main">
+    <nav className="flex flex-col gap-0.5" aria-label="Utama">
       {items.map((item) => {
         const active = item.href === activeHref;
         return (
@@ -100,7 +100,7 @@ export function AppShell({
 
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <SheetContent>
-          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          <SheetTitle className="sr-only">Navigasi</SheetTitle>
           <div className="flex h-14 items-center border-b px-4">
             <Logo href="/tenants" />
           </div>
@@ -118,7 +118,7 @@ export function AppShell({
             size="icon"
             className="md:hidden"
             onClick={() => setMobileNavOpen(true)}
-            aria-label="Open navigation"
+            aria-label="Buka navigasi"
           >
             <MenuIcon />
           </Button>
@@ -127,7 +127,7 @@ export function AppShell({
             size="icon"
             className="hidden md:inline-flex"
             onClick={toggleSidebar}
-            aria-label="Toggle sidebar"
+            aria-label="Alihkan bilah sisi"
           >
             <PanelLeftIcon />
           </Button>

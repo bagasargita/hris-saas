@@ -28,14 +28,15 @@ export function UserMenu({ user }: { user: Pick<UserDto, 'name' | 'email' | 'pla
         router.replace('/login');
         router.refresh();
       },
-      onError: () => toast.error('Could not sign out cleanly. Your session was cleared locally.'),
+      onError: () =>
+        toast.error('Keluar tidak berhasil sepenuhnya. Sesi Anda telah dihapus secara lokal.'),
     });
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-9 gap-2 px-2" aria-label="Account menu">
+        <Button variant="ghost" className="h-9 gap-2 px-2" aria-label="Menu akun">
           <Avatar className="size-7">
             <AvatarFallback>{initials(user.name)}</AvatarFallback>
           </Avatar>
@@ -50,19 +51,19 @@ export function UserMenu({ user }: { user: Pick<UserDto, 'name' | 'email' | 'pla
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/account">
-            <UserIcon /> Account settings
+            <UserIcon /> Pengaturan akun
           </Link>
         </DropdownMenuItem>
         {user.platformRole === 'SUPER_ADMIN' && (
           <DropdownMenuItem asChild>
             <Link href="/admin">
-              <ShieldIcon /> Platform admin
+              <ShieldIcon /> Admin platform
             </Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={onLogout} disabled={logout.isPending}>
-          <LogOutIcon /> Sign out
+          <LogOutIcon /> Keluar
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

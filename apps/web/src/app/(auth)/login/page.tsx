@@ -4,21 +4,21 @@ import { Suspense } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { LoginForm } from '@/components/auth/login-form';
 
-export const metadata: Metadata = { title: 'Sign in' };
+export const metadata: Metadata = { title: 'Masuk' };
 
 export default function LoginPage() {
   return (
     <AuthCard
-      title="Welcome back"
-      description="Sign in to your account"
+      title="Selamat datang kembali"
+      description="Masuk ke akun Anda"
       footer={
         <span>
-          New here?{' '}
+          Baru di sini?{' '}
           <Link
             href="/register"
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Create an account
+            Buat akun
           </Link>
         </span>
       }

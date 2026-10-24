@@ -31,16 +31,18 @@ export function VerifyEmail() {
   if (!token)
     return (
       <FormAlert>
-        This verification link is incomplete. Request a new one from the sign-in page.
+        Tautan verifikasi ini tidak lengkap. Minta tautan baru dari halaman masuk.
       </FormAlert>
     );
 
   if (state === 'done') {
     return (
       <div className="grid gap-4">
-        <FormAlert tone="success">Your email address is verified. You can now sign in.</FormAlert>
+        <FormAlert tone="success">
+          Alamat email Anda telah diverifikasi. Anda dapat masuk sekarang.
+        </FormAlert>
         <Button asChild className="w-full">
-          <Link href="/login">Continue to sign in</Link>
+          <Link href="/login">Lanjutkan masuk</Link>
         </Button>
       </div>
     );
@@ -50,7 +52,7 @@ export function VerifyEmail() {
     <div className="grid gap-4">
       {state === 'error' && message && <FormAlert>{message}</FormAlert>}
       <Button onClick={() => void verify()} disabled={state === 'pending'} className="w-full">
-        {state === 'pending' ? 'Verifying…' : 'Verify my email'}
+        {state === 'pending' ? 'Memverifikasi…' : 'Verifikasi email saya'}
       </Button>
     </div>
   );

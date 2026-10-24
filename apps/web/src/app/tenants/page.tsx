@@ -8,8 +8,9 @@ import { CreateWorkspaceForm } from '@/components/tenant/create-workspace-form';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { requireUser } from '@/lib/auth';
+import { canCreateWorkspace } from '@/lib/workspace-access';
 
-export const metadata: Metadata = { title: 'Workspaces' };
+export const metadata: Metadata = { title: 'Workspace' };
 
 export default async function TenantsPage() {
   const me = await requireUser('/tenants');
@@ -19,6 +20,7 @@ export default async function TenantsPage() {
   const unavailable = me.memberships.filter(
     (m) => !(m.status === 'ACTIVE' && m.tenant.status === 'ACTIVE'),
   );
+  const allowCreate = canCreateWorkspace(me.memberships);
 
   return (
     <div className="min-h-svh">
@@ -29,17 +31,26 @@ export default async function TenantsPage() {
           <UserMenu user={me.user} />
         </div>
       </header>
-      <main className="mx-auto grid max-w-5xl gap-8 px-4 py-10 md:grid-cols-[1fr_360px] md:px-8">
+      <main
+        className={
+          allowCreate
+            ? 'mx-auto grid max-w-5xl gap-8 px-4 py-10 md:grid-cols-[1fr_360px] md:px-8'
+            : 'mx-auto grid max-w-5xl gap-8 px-4 py-10 md:px-8'
+        }
+      >
         <section>
-          <h1 className="text-2xl font-semibold tracking-tight">Your workspaces</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Workspace Anda</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Choose a workspace to continue, or create a new one.
+            {allowCreate
+              ? 'Pilih workspace untuk melanjutkan, atau buat yang baru.'
+              : 'Pilih workspace untuk melanjutkan. Hanya pemilik yang dapat membuat workspace tambahan.'}
           </p>
           <div className="mt-6 grid gap-3">
             {usable.length === 0 && (
               <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-                You are not a member of any workspace yet. Create one, or ask a teammate to invite
-                you.
+                {allowCreate
+                  ? 'Anda belum menjadi anggota workspace mana pun. Buat workspace, atau minta rekan kerja untuk mengundang Anda.'
+                  : 'Anda bukan anggota workspace aktif mana pun. Minta rekan kerja untuk mengundang Anda.'}
               </div>
             )}
             {usable.map((m) => (
@@ -71,25 +82,27 @@ export default async function TenantsPage() {
                   <p className="truncate font-medium">{m.tenant.name}</p>
                   <p className="text-sm text-muted-foreground">
                     {m.tenant.status !== 'ACTIVE'
-                      ? 'This workspace is suspended.'
-                      : 'Your access to this workspace is suspended.'}
+                      ? 'Workspace ini ditangguhkan.'
+                      : 'Akses Anda ke workspace ini ditangguhkan.'}
                   </p>
                 </div>
               </div>
             ))}
           </div>
         </section>
-        <aside>
-          <Card>
-            <CardHeader>
-              <CardTitle>Create a workspace</CardTitle>
-              <CardDescription>You will be its owner.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CreateWorkspaceForm />
-            </CardContent>
-          </Card>
-        </aside>
+        {allowCreate && (
+          <aside>
+            <Card>
+              <CardHeader>
+                <CardTitle>Buat workspace</CardTitle>
+                <CardDescription>Anda akan menjadi pemiliknya.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CreateWorkspaceForm />
+              </CardContent>
+            </Card>
+          </aside>
+        )}
       </main>
     </div>
   );

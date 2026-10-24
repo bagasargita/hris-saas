@@ -16,7 +16,7 @@ export const USERS = {
 export async function login(page: Page, email: string, next?: string): Promise<void> {
   await page.goto(next ? `/login?next=${encodeURIComponent(next)}` : '/login');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel(/^Password/).fill(SEED_PASSWORD);
-  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.getByLabel(/^Kata sandi/).fill(SEED_PASSWORD);
+  await page.getByRole('button', { name: 'Masuk' }).click();
   await expect(page).not.toHaveURL(/\/login/);
 }

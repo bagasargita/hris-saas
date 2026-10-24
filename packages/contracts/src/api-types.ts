@@ -88,6 +88,83 @@ export interface MemberDto {
   joinedAt: IsoDate;
   user: { id: string; email: string; name: string };
   roles: RoleRefDto[];
+  /** Direct manager membership id within the same tenant, if set. */
+  managerId: string | null;
+  manager: { id: string; user: { id: string; email: string; name: string } } | null;
+}
+
+export type AttendanceRecordStatus = 'OPEN' | 'PENDING' | 'APPROVED' | 'REJECTED';
+export type AttendanceApprovalDecision = 'APPROVED' | 'REJECTED';
+export type AttendanceCalendarScope = 'self' | 'team' | 'all';
+
+export interface AttendanceSiteDto {
+  id: string;
+  name: string;
+  address: string | null;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+  timezone: string;
+  isActive: boolean;
+  createdAt: IsoDate;
+  updatedAt: IsoDate;
+}
+
+export interface WorkScheduleDayDto {
+  weekday: number;
+  startMinutes: number;
+  endMinutes: number;
+  siteId: string | null;
+  site: { id: string; name: string } | null;
+}
+
+export interface WorkScheduleDto {
+  membershipId: string;
+  days: WorkScheduleDayDto[];
+}
+
+/** Result of applying one weekly template to many members. */
+export interface BulkWorkScheduleResultDto {
+  updatedMembershipIds: string[];
+}
+
+export interface AttendanceApprovalDto {
+  decision: AttendanceApprovalDecision;
+  comment: string | null;
+  decidedAt: IsoDate;
+  approver: { id: string; user: { id: string; name: string; email: string } };
+}
+
+export interface AttendanceRecordDto {
+  id: string;
+  membershipId: string;
+  member: { id: string; user: { id: string; name: string; email: string } };
+  site: { id: string; name: string };
+  workDate: string;
+  clockInAt: IsoDate;
+  clockOutAt: IsoDate | null;
+  clockInLat: number;
+  clockInLng: number;
+  clockOutLat: number | null;
+  clockOutLng: number | null;
+  status: AttendanceRecordStatus;
+  note: string | null;
+  lateMinutes: number | null;
+  earlyLeaveMinutes: number | null;
+  approval: AttendanceApprovalDto | null;
+  createdAt: IsoDate;
+}
+
+export interface AttendanceTodayDto {
+  openRecord: AttendanceRecordDto | null;
+  recent: AttendanceRecordDto[];
+  sites: AttendanceSiteDto[];
+  scheduleToday: WorkScheduleDayDto | null;
+}
+
+export interface AttendanceCalendarDayDto {
+  date: string;
+  records: AttendanceRecordDto[];
 }
 
 export interface RoleDto {

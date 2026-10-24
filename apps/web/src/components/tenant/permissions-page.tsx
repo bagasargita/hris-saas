@@ -24,8 +24,8 @@ export function PermissionsPage() {
 
   const header = (
     <PageHeader
-      title="Permissions"
-      description="Every permission in this workspace and which roles grant it."
+      title="Izin"
+      description="Setiap izin di workspace ini dan peran mana yang memberikannya."
     />
   );
   if (catalog.isError || roles.isError) {
@@ -52,7 +52,7 @@ export function PermissionsPage() {
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow className="hover:bg-transparent">
-              <TableHead>Permission</TableHead>
+              <TableHead>Izin</TableHead>
               {roles.data.map((role) => (
                 <TableHead key={role.id} className="text-center">
                   {role.name}
@@ -70,11 +70,11 @@ export function PermissionsPage() {
                 {roles.data.map((role) => (
                   <TableCell key={role.id} className="text-center">
                     {role.permissions.includes(permission.key) ? (
-                      <CheckIcon className="mx-auto size-4 text-success" aria-label="Granted" />
+                      <CheckIcon className="mx-auto size-4 text-success" aria-label="Diberikan" />
                     ) : (
                       <MinusIcon
                         className="mx-auto size-4 text-muted-foreground/40"
-                        aria-label="Not granted"
+                        aria-label="Tidak diberikan"
                       />
                     )}
                   </TableCell>

@@ -2,8 +2,13 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  AttendanceCalendarDayDto,
+  AttendanceRecordDto,
+  AttendanceSiteDto,
+  AttendanceTodayDto,
   AuditLogDto,
   BillingDto,
+  BulkWorkScheduleResultDto,
   InvitationDto,
   InvitationImportResultDto,
   MeResponse,
@@ -21,6 +26,7 @@ import type {
   TenantStatsResponse,
   TenantStatus,
   UserStatus,
+  WorkScheduleDto,
 } from '@saas/contracts';
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from './client';
 import { queryKeys, toSearchParams } from './query-keys';
@@ -171,6 +177,205 @@ export function useRemoveMember(tenantId: string) {
   return useMutation({
     mutationFn: (memberId: string) => apiDelete(tenantPath(tenantId, `/members/${memberId}`)),
     onSuccess: invalidate,
+  });
+}
+
+export function useUpdateMemberManager(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: ({ memberId, managerId }: { memberId: string; managerId: string | null }) =>
+      apiPatch<MemberDto>(tenantPath(tenantId, `/members/${memberId}/manager`), { managerId }),
+    onSuccess: invalidate,
+  });
+}
+
+// ---------------------------------------------------------------- attendance
+
+export function useAttendanceToday(tenantId: string) {
+  return useQuery({
+    queryKey: queryKeys.attendanceMe(tenantId),
+    queryFn: () => apiGet<AttendanceTodayDto>(tenantPath(tenantId, '/attendance/me')),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useAttendanceSites(tenantId: string) {
+  return useQuery({
+    queryKey: queryKeys.attendanceSites(tenantId),
+    queryFn: () => apiGet<AttendanceSiteDto[]>(tenantPath(tenantId, '/attendance/sites')),
+  });
+}
+
+export function useCreateAttendanceSite(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: (input: {
+      name: string;
+      address?: string;
+      latitude: number;
+      longitude: number;
+      radiusMeters?: number;
+      timezone?: string;
+      isActive?: boolean;
+    }) => apiPost<AttendanceSiteDto>(tenantPath(tenantId, '/attendance/sites'), input),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUpdateAttendanceSite(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: ({
+      siteId,
+      ...input
+    }: {
+      siteId: string;
+      name?: string;
+      address?: string | null;
+      latitude?: number;
+      longitude?: number;
+      radiusMeters?: number;
+      timezone?: string;
+      isActive?: boolean;
+    }) => apiPatch<AttendanceSiteDto>(tenantPath(tenantId, `/attendance/sites/${siteId}`), input),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteAttendanceSite(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: (siteId: string) => apiDelete(tenantPath(tenantId, `/attendance/sites/${siteId}`)),
+    onSuccess: invalidate,
+  });
+}
+
+export function useWorkSchedule(tenantId: string, membershipId: string) {
+  return useQuery({
+    queryKey: queryKeys.attendanceSchedule(tenantId, membershipId),
+    queryFn: () =>
+      apiGet<WorkScheduleDto>(tenantPath(tenantId, `/attendance/schedules/${membershipId}`)),
+    enabled: !!membershipId,
+  });
+}
+
+export function usePutWorkSchedule(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: ({
+      membershipId,
+      days,
+    }: {
+      membershipId: string;
+      days: {
+        weekday: number;
+        startMinutes: number;
+        endMinutes: number;
+        siteId?: string | null;
+      }[];
+    }) =>
+      apiPut<WorkScheduleDto>(tenantPath(tenantId, `/attendance/schedules/${membershipId}`), {
+        days,
+      }),
+    onSuccess: invalidate,
+  });
+}
+
+/** Apply one weekly template to many active members. */
+export function useBulkPutWorkSchedule(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: ({
+      membershipIds,
+      days,
+    }: {
+      membershipIds: string[];
+      days: {
+        weekday: number;
+        startMinutes: number;
+        endMinutes: number;
+        siteId?: string | null;
+      }[];
+    }) =>
+      apiPut<BulkWorkScheduleResultDto>(tenantPath(tenantId, '/attendance/schedules'), {
+        membershipIds,
+        days,
+      }),
+    onSuccess: invalidate,
+  });
+}
+
+export function useClockIn(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: (input: {
+      siteId: string;
+      latitude: number;
+      longitude: number;
+      note?: string;
+    }) => apiPost<AttendanceRecordDto>(tenantPath(tenantId, '/attendance/clock-in'), input),
+    onSuccess: invalidate,
+  });
+}
+
+export function useClockOut(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: (input: { latitude: number; longitude: number; note?: string }) =>
+      apiPost<AttendanceRecordDto>(tenantPath(tenantId, '/attendance/clock-out'), input),
+    onSuccess: invalidate,
+  });
+}
+
+export interface AttendanceRecordListParams extends ListParams {
+  status?: 'OPEN' | 'PENDING' | 'APPROVED' | 'REJECTED';
+  scope?: 'self' | 'team' | 'all';
+  from?: string;
+  to?: string;
+  membershipId?: string;
+}
+
+export function useAttendanceRecords(tenantId: string, params: AttendanceRecordListParams) {
+  return useQuery({
+    queryKey: queryKeys.attendanceRecords(tenantId, params),
+    queryFn: () =>
+      apiGet<Paginated<AttendanceRecordDto>>(
+        tenantPath(tenantId, `/attendance/records${toSearchParams({ ...params })}`),
+      ),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useApproveAttendance(tenantId: string) {
+  const invalidate = useInvalidateTenant(tenantId);
+  return useMutation({
+    mutationFn: ({
+      recordId,
+      decision,
+      comment,
+    }: {
+      recordId: string;
+      decision: 'APPROVED' | 'REJECTED';
+      comment?: string;
+    }) =>
+      apiPost<AttendanceRecordDto>(
+        tenantPath(tenantId, `/attendance/records/${recordId}/approve`),
+        { decision, comment },
+      ),
+    onSuccess: invalidate,
+  });
+}
+
+export function useAttendanceCalendar(
+  tenantId: string,
+  params: { month: string; scope?: 'self' | 'team' | 'all' },
+) {
+  return useQuery({
+    queryKey: queryKeys.attendanceCalendar(tenantId, params),
+    queryFn: () =>
+      apiGet<AttendanceCalendarDayDto[]>(
+        tenantPath(tenantId, `/attendance/calendar${toSearchParams({ ...params })}`),
+      ),
   });
 }
 

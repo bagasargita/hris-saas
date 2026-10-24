@@ -25,7 +25,7 @@ describe('toApiError', () => {
 describe('errorMessage', () => {
   it('hides server error details behind a generic message', () => {
     expect(errorMessage(new ApiError(500, 'INTERNAL_ERROR', 'stack trace here'))).toBe(
-      'Something went wrong. Please try again.',
+      'Terjadi kesalahan. Silakan coba lagi.',
     );
   });
 
@@ -36,7 +36,7 @@ describe('errorMessage', () => {
   });
 
   it('explains network and rate limit failures', () => {
-    expect(errorMessage(new ApiError(0, 'NETWORK_ERROR', 'x'))).toMatch(/reach the server/);
-    expect(errorMessage(new ApiError(429, 'RATE_LIMITED', 'x'))).toMatch(/Too many attempts/);
+    expect(errorMessage(new ApiError(0, 'NETWORK_ERROR', 'x'))).toMatch(/terhubung ke server/);
+    expect(errorMessage(new ApiError(429, 'RATE_LIMITED', 'x'))).toMatch(/Terlalu banyak/);
   });
 });

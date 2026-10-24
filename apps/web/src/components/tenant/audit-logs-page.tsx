@@ -15,8 +15,8 @@ export function AuditLogsPage() {
   return (
     <>
       <PageHeader
-        title="Audit log"
-        description="Security-relevant events in this workspace. Entries cannot be edited or deleted."
+        title="Log audit"
+        description="Peristiwa terkait keamanan di workspace ini. Entri tidak dapat diedit atau dihapus."
       />
       <AuditLogTable useData={useData} />
     </>

@@ -7,7 +7,11 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { generateToken, hashToken } from '../src/common/security/crypto';
 import { type MembershipStatus, type Plan, PrismaClient } from '../src/generated/prisma/client';
 import { PasswordService } from '../src/modules/auth/password.service';
-import { provisionTenant, syncPermissionCatalog } from '../src/modules/tenants/tenant-provisioning';
+import {
+  provisionTenant,
+  syncPermissionCatalog,
+  syncSystemRolePermissions,
+} from '../src/modules/tenants/tenant-provisioning';
 
 export const SEED_USERS = {
   superAdmin: { email: 'superadmin@platform.test', name: 'Sasha Platform' },
@@ -37,7 +41,10 @@ async function main(): Promise<void> {
   const passwordHash = await passwords.hash(password);
 
   try {
-    await prisma.$transaction((tx) => syncPermissionCatalog(tx));
+    await prisma.$transaction(async (tx) => {
+      await syncPermissionCatalog(tx);
+      await syncSystemRolePermissions(tx);
+    });
 
     const upsertUser = async (
       user: { email: string; name: string },
@@ -75,6 +82,11 @@ async function main(): Promise<void> {
     await ensureMember(prisma, acme, userIds.acmeSuspended, 'member', 'SUSPENDED');
     // Mike belongs to two tenants with different roles, to exercise tenant switching.
     await ensureMember(prisma, globex, userIds.acmeMember, 'viewer');
+
+    await seedAttendanceDemo(prisma, acme, {
+      managerUserId: userIds.acmeManager,
+      memberUserId: userIds.acmeMember,
+    });
 
     const pending = await prisma.invitation.count({
       where: { tenantId: acme.id, email: 'new.hire@acme.test', status: 'PENDING' },
@@ -147,10 +159,10 @@ async function ensureMember(
   userId: string,
   roleKey: string,
   status: MembershipStatus = 'ACTIVE',
-): Promise<void> {
+): Promise<string> {
   const roleId = tenant.roleIds[roleKey];
   if (!roleId) throw new Error(`Role ${roleKey} not found`);
-  await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     const membership = await tx.membership.upsert({
       where: { tenantId_userId: { tenantId: tenant.id, userId } },
       create: { tenantId: tenant.id, userId, status },
@@ -160,7 +172,121 @@ async function ensureMember(
     await tx.membershipRole.create({
       data: { membershipId: membership.id, roleId, tenantId: tenant.id },
     });
+    return membership.id;
   });
+}
+
+/** Demo HQ near Monas, Jakarta — use these coords (or nearby) when testing clock-in. */
+const ACME_HQ = {
+  name: 'Acme HQ',
+  address: 'Monas, Jakarta',
+  latitude: -6.175392,
+  longitude: 106.827153,
+  radiusMeters: 200,
+  timezone: 'Asia/Jakarta',
+} as const;
+
+const ACME_REMOTE = {
+  name: 'Acme Remote Hub',
+  address: 'Senayan, Jakarta',
+  latitude: -6.229728,
+  longitude: 106.798553,
+  radiusMeters: 150,
+  timezone: 'Asia/Jakarta',
+} as const;
+
+async function seedAttendanceDemo(
+  prisma: PrismaClient,
+  tenant: SeededTenant,
+  users: { managerUserId: string; memberUserId: string },
+): Promise<void> {
+  const manager = await prisma.membership.findUniqueOrThrow({
+    where: { tenantId_userId: { tenantId: tenant.id, userId: users.managerUserId } },
+  });
+  const member = await prisma.membership.findUniqueOrThrow({
+    where: { tenantId_userId: { tenantId: tenant.id, userId: users.memberUserId } },
+  });
+
+  await prisma.membership.update({
+    where: { id: member.id },
+    data: { managerId: manager.id },
+  });
+
+  const ensureSite = async (data: {
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    radiusMeters: number;
+    timezone: string;
+  }) => {
+    const existing = await prisma.attendanceSite.findFirst({
+      where: { tenantId: tenant.id, name: data.name },
+    });
+    if (existing) {
+      return prisma.attendanceSite.update({
+        where: { id: existing.id },
+        data: { ...data, isActive: true },
+      });
+    }
+    return prisma.attendanceSite.create({
+      data: { tenantId: tenant.id, ...data },
+    });
+  };
+  const hq = await ensureSite(ACME_HQ);
+  await ensureSite(ACME_REMOTE);
+
+  // Mon–Fri 09:00–18:00 at HQ
+  for (const weekday of [1, 2, 3, 4, 5]) {
+    await prisma.workSchedule.upsert({
+      where: { membershipId_weekday: { membershipId: member.id, weekday } },
+      create: {
+        tenantId: tenant.id,
+        membershipId: member.id,
+        weekday,
+        startMinutes: 9 * 60,
+        endMinutes: 18 * 60,
+        siteId: hq.id,
+      },
+      update: {
+        startMinutes: 9 * 60,
+        endMinutes: 18 * 60,
+        siteId: hq.id,
+      },
+    });
+  }
+
+  const yesterday = new Date();
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const workDate = new Date(
+    Date.UTC(yesterday.getUTCFullYear(), yesterday.getUTCMonth(), yesterday.getUTCDate()),
+  );
+
+  const existingPending = await prisma.attendanceRecord.findFirst({
+    where: { tenantId: tenant.id, membershipId: member.id, status: 'PENDING' },
+  });
+  if (!existingPending) {
+    const clockInAt = new Date(workDate.getTime() + 2 * 60 * 60 * 1000); // ~09:00-ish UTC offset demo
+    const clockOutAt = new Date(clockInAt.getTime() + 8 * 60 * 60 * 1000);
+    await prisma.attendanceRecord.create({
+      data: {
+        tenantId: tenant.id,
+        membershipId: member.id,
+        siteId: hq.id,
+        workDate,
+        clockInAt,
+        clockOutAt,
+        clockInLat: ACME_HQ.latitude,
+        clockInLng: ACME_HQ.longitude,
+        clockOutLat: ACME_HQ.latitude,
+        clockOutLng: ACME_HQ.longitude,
+        status: 'PENDING',
+        lateMinutes: 5,
+        earlyLeaveMinutes: 0,
+        note: 'Seeded pending approval for Maya',
+      },
+    });
+  }
 }
 
 main().catch((error: unknown) => {
